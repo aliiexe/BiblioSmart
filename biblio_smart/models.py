@@ -2,9 +2,12 @@ from django.db import models
 
 class Utilisateur(models.Model):
     nom = models.CharField(max_length=255)
-    email = models.EmailField(unique=True)
+    email = models.EmailField(unique=True, max_length=191)
     mot_de_passe = models.CharField(max_length=255)
     role = models.CharField(max_length=50, choices=[('lecteur', 'Lecteur'), ('bibliothecaire', 'Bibliothecaire')])
+
+    
+
 
     def s_inscrire(self):
         pass
