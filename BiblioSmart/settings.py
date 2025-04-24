@@ -77,8 +77,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'biblio_smart_db',  
-        'USER': 'your_username',   
-        'PASSWORD': 'your_password',
+        'USER': 'root',   
+        'PASSWORD': 'Ali10062005bourak@',
         'HOST': 'localhost',        
         'PORT': '3306',             
     }
