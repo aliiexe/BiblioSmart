@@ -1,0 +1,89 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>BiblioSmart</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;500;600&display=swap');
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f8f8fc;
+        }
+        
+        .logo {
+            font-family: 'Playfair Display', serif;
+        }
+        
+        .sidebar {
+            background: linear-gradient(to bottom, #1e293b, #0f172a);
+            box-shadow: 2px 0 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .menu-link {
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .menu-link:hover {
+            border-left: 3px solid #60a5fa;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .logout-btn {
+            transition: all 0.3s ease;
+        }
+        
+        .logout-btn:hover {
+            background-color: rgba(239, 68, 68, 0.8);
+        }
+    </style>
+</head>
+<body class="flex min-h-screen bg-gray-50">
+    <div class="sidebar w-64 h-screen text-white p-6 space-y-8 fixed">
+        <div class="py-4 border-b border-gray-700">
+            <h2 class="logo text-3xl font-bold text-center flex items-center justify-center">
+                <i class="fas fa-book-open mr-2 text-blue-400"></i>
+                <span>BiblioSmart</span>
+            </h2>
+        </div>
+        
+        <nav class="space-y-6">
+            <div class="text-xs uppercase text-gray-400 tracking-wider mb-3 pl-3">Menu principal</div>
+            <a href="#" class="menu-link flex items-center px-4 py-3 rounded-lg text-gray-100 hover:text-white">
+                <i class="fas fa-home mr-3 w-5 text-center"></i>
+                <span>Accueil</span>
+            </a>
+            <a href="#" class="menu-link flex items-center px-4 py-3 rounded-lg text-gray-100 hover:text-white">
+                <i class="fas fa-book mr-3 w-5 text-center"></i>
+                <span>Livres</span>
+            </a>
+            <a href="#" class="menu-link flex items-center px-4 py-3 rounded-lg text-gray-100 hover:text-white">
+                <i class="fas fa-list mr-3 w-5 text-center"></i>
+                <span>Catégories</span>
+            </a>
+            <a href="#" class="menu-link flex items-center px-4 py-3 rounded-lg text-gray-100 hover:text-white">
+                <i class="fas fa-exchange-alt mr-3 w-5 text-center"></i>
+                <span>Emprunts</span>
+            </a>
+        </nav>
+        
+        <div class="absolute bottom-0 left-0 w-full p-6">
+            <a href="#" class="logout-btn flex items-center justify-center w-full px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all">
+                <i class="fas fa-sign-out-alt mr-2"></i>
+                <span>Déconnexion</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="ml-64 p-8 w-full">
+        <div class="max-w-7xl mx-auto bg-white rounded-xl shadow-sm p-6">
+            {% block content %}
+            {% endblock %}
+        </div>
+    </div>
+</body>
+</html>

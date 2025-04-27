@@ -23,6 +23,7 @@ class Livre(models.Model):
     categorie = models.CharField(max_length=100)
     disponibilite = models.BooleanField(default=True)
     liste_attente = models.ManyToManyField('Lecteur', blank=True)
+    image = models.ImageField(upload_to='livres/static/images/', blank=True, null=True)
 
     def mettre_a_jour_disponibilite(self):
         pass
