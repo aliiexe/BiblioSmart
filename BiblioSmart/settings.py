@@ -64,6 +64,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'livres.context_processors.categories_processor',
             ],
         },
     },
@@ -80,7 +81,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'biblio_smart_db',
         'USER': 'root',
-        'PASSWORD': '',
+        'PASSWORD': 'Ali10062005bourak@',
         'HOST': 'localhost',
         'PORT': '3306',
         'OPTIONS': {

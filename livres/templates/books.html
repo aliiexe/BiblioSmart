@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+{% block title %}Browse Books{% endblock %}
+{% block header_title %}Book Collection{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <!-- Filters -->
+    <div class="mb-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div class="relative">
+            <input type="text" placeholder="Search by title, author or ISBN..." class="w-full md:w-80 pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-600">
+            <i class="fas fa-search absolute left-3 top-2.5 text-gray-400"></i>
+        </div>
+        
+        <div class="flex flex-wrap gap-3">
+            <div class="relative">
+                <form method="get" id="categoryForm">
+                    <select name="category" class="appearance-none bg-white border border-gray-200 rounded-lg pl-4 pr-10 py-2 focus:outline-none focus:ring-2 focus:ring-gray-600" onchange="document.getElementById('categoryForm').submit()">
+                        <option value="" {% if not request.GET.category %}selected{% endif %}>All Categories</option>
+                        {% for category in categories %}
+                        <option value="{{ category }}" {% if request.GET.category == category %}selected{% endif %}>{{ category }}</option>
+                        {% endfor %}
+                    </select>
+                    <i class="fas fa-chevron-down absolute right-3 top-3 text-gray-400 pointer-events-none"></i>
+                </form>
+            </div>
+            
+            <div class="relative">
+                <form method="get" id="availabilityForm">
+                    <select name="availability" class="appearance-none bg-white border border-gray-200 rounded-lg pl-4 pr-10 py-2 focus:outline-none focus:ring-2 focus:ring-gray-600" onchange="document.getElementById('availabilityForm').submit()">
+                        <option value="" {% if not request.GET.availability %}selected{% endif %}>All Books</option>
+                        <option value="available" {% if request.GET.availability == 'available' %}selected{% endif %}>Available</option>
+                        <option value="borrowed" {% if request.GET.availability == 'borrowed' %}selected{% endif %}>Borrowed</option>
+                    </select>
+                    <i class="fas fa-chevron-down absolute right-3 top-3 text-gray-400 pointer-events-none"></i>
+                </form>
+            </div>
+            
+            <div class="relative">
+                <form method="get" id="sortForm">
+                    <select name="sort" class="appearance-none bg-white border border-gray-200 rounded-lg pl-4 pr-10 py-2 focus:outline-none focus:ring-2 focus:ring-gray-600" onchange="document.getElementById('sortForm').submit()">
+                        <option value="recent" {% if request.GET.sort == 'recent' %}selected{% endif %}>Sort By: Newest</option>
+                        <option value="title_asc" {% if request.GET.sort == 'title_asc' %}selected{% endif %}>Title A-Z</option>
+                        <option value="title_desc" {% if request.GET.sort == 'title_desc' %}selected{% endif %}>Title Z-A</option>
+                        <option value="author_asc" {% if request.GET.sort == 'author_asc' %}selected{% endif %}>Author A-Z</option>
+                    </select>
+                    <i class="fas fa-chevron-down absolute right-3 top-3 text-gray-400 pointer-events-none"></i>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Books Grid -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 mb-10">
+        {% for book in books %}
+        <a href="{% url 'book_detail' book.id %}" class="book-card group">
+            <div class="relative aspect-[2/3] rounded-lg overflow-hidden shadow-md mb-3">
+                {% if book.image %}
+                <img src="{{ book.image.url }}" alt="{{ book.titre }}" class="w-full h-full object-cover">
+                {% else %}
+                <div class="w-full h-full bg-gray-200 flex items-center justify-center">
+                    <i class="fas fa-book text-gray-400 text-4xl"></i>
+                </div>
+                {% endif %}
+                
+                <div class="book-overlay absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+                    <span class="px-4 py-2 bg-white text-gray-900 rounded-lg font-medium">View Details</span>
+                </div>
+                
+                {% if book.disponibilite %}
+                <div class="absolute top-3 right-3">
+                    <span class="px-2 py-1 bg-green-500 text-white text-xs rounded-full">Available</span>
+                </div>
+                {% else %}
+                <div class="absolute top-3 right-3">
+                    <span class="px-2 py-1 bg-red-500 text-white text-xs rounded-full">Borrowed</span>
+                </div>
+                {% endif %}
+            </div>
+            <h3 class="font-medium text-gray-900 group-hover:text-gray-600 transition-colors line-clamp-1" title="{{ book.titre }}">{{ book.titre }}</h3>
+            <p class="text-sm text-gray-600 line-clamp-1" title="{{ book.auteur }}">{{ book.auteur }}</p>
+            <p class="text-xs text-gray-500 mt-1">{{ book.categorie }}</p>
+        </a>
+        {% empty %}
+        <div class="col-span-full flex flex-col items-center justify-center py-16">
+            <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                <i class="fas fa-book-open text-gray-400 text-3xl"></i>
+            </div>
+            <h3 class="text-xl font-medium text-gray-900 mb-2">No books found</h3>
+            <p class="text-gray-600 text-center max-w-md">Try adjusting your search or filter criteria to find what you're looking for.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    <div class="flex justify-center">
+        <nav class="inline-flex rounded-md shadow-sm" aria-label="Pagination">
+            <a href="#" class="relative inline-flex items-center px-3 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                <span class="sr-only">Previous</span>
+                <i class="fas fa-chevron-left"></i>
+            </a>
+            <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">1</a>
+            <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-gray-100 text-sm font-medium text-gray-900">2</a>
+            <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">3</a>
+            <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">...</span>
+            <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">8</a>
+            <a href="#" class="relative inline-flex items-center px-3 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                <span class="sr-only">Next</span>
+                <i class="fas fa-chevron-right"></i>
+            </a>
+        </nav>
+    </div>
+</div>
+{% endblock %}

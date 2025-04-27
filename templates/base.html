@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Library Management System{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .book-card {
+            transition: all 0.3s ease;
+        }
+        
+        .book-card:hover {
+            transform: translateY(-8px);
+        }
+        
+        .book-card .book-overlay {
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .book-card:hover .book-overlay {
+            opacity: 1;
+        }
+        
+        .sidebar-transition {
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar-item {
+            transition: all 0.2s ease;
+        }
+        
+        .sidebar-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-gray-50 text-gray-800">
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <div id="sidebar" class="sidebar-transition fixed inset-y-0 left-0 z-50 w-64 bg-gray-900 text-white transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0">
+            <div class="flex items-center justify-between h-16 px-6 border-b border-gray-800">
+                <h1 class="text-xl font-semibold tracking-wider">Bibliothèque</h1>
+                <button id="closeSidebar" class="p-2 rounded-md md:hidden focus:outline-none focus:ring-2 focus:ring-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+                        <div class="px-4 py-6">
+                <nav>
+                    <ul class="space-y-2">
+                        <li>
+                            <a href="{% url 'home' %}" class="sidebar-item flex items-center px-4 py-3 text-gray-300 rounded-lg hover:text-white">
+                                <i class="fas fa-home w-5 h-5 mr-3"></i>
+                                <span>Home</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'books' %}" class="sidebar-item flex items-center px-4 py-3 text-gray-300 rounded-lg hover:text-white">
+                                <i class="fas fa-book w-5 h-5 mr-3"></i>
+                                <span>Books</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="sidebar-item flex items-center px-4 py-3 text-gray-300 rounded-lg hover:text-white">
+                                <i class="fas fa-users w-5 h-5 mr-3"></i>
+                                <span>Members</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="sidebar-item flex items-center px-4 py-3 text-gray-300 rounded-lg hover:text-white">
+                                <i class="fas fa-exchange-alt w-5 h-5 mr-3"></i>
+                                <span>Loans</span>
+                            </a>
+                        </li>
+                        <!-- Management Links -->
+                        <li>
+                            <a href="{% url 'book_management' %}" class="sidebar-item flex items-center px-4 py-3 text-gray-300 rounded-lg hover:text-white">
+                                <i class="fas fa-cogs w-5 h-5 mr-3"></i>
+                                <span>Book Management</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'add_book' %}" class="sidebar-item flex items-center px-4 py-3 text-gray-300 rounded-lg hover:text-white">
+                                <i class="fas fa-plus w-5 h-5 mr-3"></i>
+                                <span>Add Book</span>
+                            </a>
+                        </li>
+                    </ul>
+                    
+                    <div class="mt-10 pt-6 border-t border-gray-800">
+                        <h3 class="px-4 mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Categories</h3>
+                        <ul class="space-y-1">
+                            {% for category in categories %}
+                            <li>
+                                <a href="{% url 'books' %}?category={{ category }}" class="sidebar-item flex items-center px-4 py-2 text-sm text-gray-300 rounded-lg hover:text-white">
+                                    {{ category }}
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+            
+            <div class="absolute bottom-0 w-full p-4 border-t border-gray-800">
+                <a href="#" class="flex items-center px-4 py-3 text-gray-300 rounded-lg hover:bg-gray-800 hover:text-white">
+                    <i class="fas fa-sign-out-alt w-5 h-5 mr-3"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1">
+            <header class="bg-white shadow-sm">
+                <div class="flex items-center justify-between h-16 px-6">
+                    <div class="flex items-center">
+                        <button id="openSidebar" class="p-2 mr-4 rounded-md md:hidden focus:outline-none focus:ring-2 focus:ring-gray-600">
+                            <i class="fas fa-bars"></i>
+                        </button>
+                        <h2 class="text-xl font-medium">{% block header_title %}Library{% endblock %}</h2>
+                    </div>
+                    
+                    <div class="flex items-center space-x-4">
+                        <div class="relative">
+                            <input type="text" placeholder="Search..." class="w-64 pl-10 pr-4 py-2 text-sm bg-gray-100 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-600 focus:bg-white">
+                            <i class="fas fa-search absolute left-3 top-2.5 text-gray-400"></i>
+                        </div>
+                        
+                        <button class="p-2 text-gray-600 rounded-full hover:bg-gray-100">
+                            <i class="fas fa-bell"></i>
+                        </button>
+                        
+                        <div class="relative">
+                            <button class="flex items-center text-sm focus:outline-none">
+                                <div class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
+                                    <i class="fas fa-user text-gray-600"></i>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            
+            <main class="p-6 md:p-10">
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Sidebar toggle functionality
+        document.getElementById('openSidebar').addEventListener('click', function() {
+            document.getElementById('sidebar').classList.remove('-translate-x-full');
+        });
+        
+        document.getElementById('closeSidebar').addEventListener('click', function() {
+            document.getElementById('sidebar').classList.add('-translate-x-full');
+        });
+        
+        // On mobile, hide sidebar by default
+        if (window.innerWidth < 768) {
+            document.getElementById('sidebar').classList.add('-translate-x-full');
+        }
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

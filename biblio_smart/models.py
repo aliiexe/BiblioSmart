@@ -7,8 +7,6 @@ class Utilisateur(models.Model):
     role = models.CharField(max_length=50, choices=[('lecteur', 'Lecteur'), ('bibliothecaire', 'Bibliothecaire')])
 
     
-
-
     def s_inscrire(self):
         pass
 
@@ -22,8 +20,11 @@ class Livre(models.Model):
     ISBN = models.CharField(max_length=13, unique=True)
     categorie = models.CharField(max_length=100)
     disponibilite = models.BooleanField(default=True)
+    disponibilite = models.BooleanField(default=True)
     liste_attente = models.ManyToManyField('Lecteur', blank=True)
     image = models.ImageField(upload_to='livres/static/images/', blank=True, null=True)
+    date_ajout = models.DateField(auto_now_add=True)
+    date_modification = models.DateField(auto_now=True)
 
     def mettre_a_jour_disponibilite(self):
         pass
