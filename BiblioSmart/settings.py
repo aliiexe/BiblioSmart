@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'biblio_smart',
     'livres',
+    'emprunt',
 ]
 
 MIDDLEWARE = [
@@ -57,7 +58,7 @@ ROOT_URLCONF = 'BiblioSmart.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates', os.path.join(BASE_DIR, 'livres',  'templates')],
+        'DIRS': [BASE_DIR / 'templates', os.path.join(BASE_DIR, 'livres','emprunt'  'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -129,6 +130,13 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'livres', 'static'),
     os.path.join(BASE_DIR, 'static'),
 ]
+
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
