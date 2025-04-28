@@ -1,0 +1,363 @@
+{% extends 'base.html' %}
+
+{% block title %}Book Management{% endblock %}
+{% block header_title %}Book Management{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <!-- Header with Actions -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">Book Collection</h1>
+            <p class="text-gray-600">Manage your library's book inventory</p>
+        </div>
+        
+        <div class="flex gap-3">
+            <a href="{% url 'add_book' %}" class="flex items-center px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition duration-300">
+                <i class="fas fa-plus mr-2"></i> Add New Book
+            </a>
+            <button id="bulk-actions-button" class="flex items-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition duration-300">
+                <i class="fas fa-cog mr-2"></i> Bulk Actions
+            </button>
+        </div>
+    </div>
+    
+    <!-- Filters -->
+    <div class="bg-white rounded-xl shadow-sm p-4 mb-6">
+        <div class="flex flex-wrap items-center gap-4">
+            <div class="relative flex-grow max-w-md">
+                <input type="text" placeholder="Search books..." class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-600">
+                <i class="fas fa-search absolute left-3 top-2.5 text-gray-400"></i>
+            </div>
+            
+            <div class="flex flex-wrap gap-3">
+                <div class="relative">
+                    <select class="appearance-none bg-gray-50 border border-gray-200 rounded-lg pl-4 pr-10 py-2 focus:outline-none focus:ring-2 focus:ring-gray-600">
+                        <option>All Categories</option>
+                        <option>Fiction</option>
+                        <option>Non-Fiction</option>
+                        <option>Science</option>
+                        <option>History</option>
+                        <option>Biography</option>
+                    </select>
+                    <i class="fas fa-chevron-down absolute right-3 top-3 text-gray-400 pointer-events-none"></i>
+                </div>
+                
+                <div class="relative">
+                    <select class="appearance-none bg-gray-50 border border-gray-200 rounded-lg pl-4 pr-10 py-2 focus:outline-none focus:ring-2 focus:ring-gray-600">
+                        <option>All Books</option>
+                        <option>Available</option>
+                        <option>Borrowed</option>
+                    </select>
+                    <i class="fas fa-chevron-down absolute right-3 top-3 text-gray-400 pointer-events-none"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Books Table -->
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-6">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <div class="flex items-center">
+                                <input type="checkbox" class="h-4 w-4 text-gray-900 focus:ring-gray-600 rounded">
+                            </div>
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Book
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Author
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Category
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            ISBN
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Status
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Actions
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for book in books %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <input type="checkbox" class="h-4 w-4 text-gray-900 focus:ring-gray-600 rounded book-checkbox" data-id="{{ book.id }}">
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="h-10 w-8 flex-shrink-0 mr-4">
+                                    {% if book.image %}
+                                    <img class="h-10 w-8 object-cover rounded" src="{{ book.image.url }}" alt="{{ book.titre }}">
+                                    {% else %}
+                                    <div class="h-10 w-8 bg-gray-200 rounded flex items-center justify-center">
+                                        <i class="fas fa-book text-gray-400 text-xs"></i>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="text-sm font-medium text-gray-900">
+                                    <a href="{% url 'book_detail' book.id %}" class="hover:text-gray-600">{{ book.titre }}</a>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">{{ book.auteur }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">{{ book.categorie }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">{{ book.ISBN }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if book.disponibilite %}
+                            <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                Available
+                            </span>
+                            {% else %}
+                            <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                Borrowed
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <div class="flex justify-end space-x-2">
+                                <a href="{% url 'edit_book' book.id %}" class="text-gray-600 hover:text-gray-900" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button type="button" class="text-gray-600 hover:text-red-600 delete-book-btn" data-id="{{ book.id }}" data-title="{{ book.titre }}" title="Delete">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="px-6 py-10 text-center">
+                            <div class="flex flex-col items-center">
+                                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                                    <i class="fas fa-book-open text-gray-400 text-2xl"></i>
+                                </div>
+                                <h3 class="text-lg font-medium text-gray-900 mb-1">No books found</h3>
+                                <p class="text-gray-600 mb-4">Start by adding a new book to your collection</p>
+                                <a href="{% url 'add_book' %}" class="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition duration-300">
+                                    <i class="fas fa-plus mr-2"></i> Add New Book
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Pagination -->
+    <div class="flex justify-between items-center">
+        <div class="text-sm text-gray-700">
+            Showing <span class="font-medium">1</span> to <span class="font-medium">10</span> of <span class="font-medium">{{ books.count }}</span> books
+        </div>
+        
+        <nav class="inline-flex rounded-md shadow-sm" aria-label="Pagination">
+            <a href="#" class="relative inline-flex items-center px-3 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                <span class="sr-only">Previous</span>
+                <i class="fas fa-chevron-left"></i>
+            </a>
+            <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">1</a>
+            <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-gray-100 text-sm font-medium text-gray-900">2</a>
+            <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">3</a>
+            <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">...</span>
+            <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">8</a>
+            <a href="#" class="relative inline-flex items-center px-3 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                <span class="sr-only">Next</span>
+                <i class="fas fa-chevron-right"></i>
+            </a>
+        </nav>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="delete-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
+    <div class="bg-white rounded-xl shadow-lg max-w-md w-full mx-4 overflow-hidden">
+        <div class="p-6">
+            <div class="flex items-center justify-center w-12 h-12 rounded-full bg-red-100 mx-auto mb-4">
+                <i class="fas fa-exclamation-triangle text-red-600"></i>
+            </div>
+            <h3 class="text-lg font-bold text-center text-gray-900 mb-2">Delete Book</h3>
+            <p class="text-center text-gray-600 mb-6">
+                Are you sure you want to delete "<span id="delete-book-title" class="font-medium"></span>"? This action cannot be undone.
+            </p>
+            <div class="flex justify-center space-x-3">
+                <button id="cancel-delete" class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition duration-300">
+                    Cancel
+                </button>
+                <form id="delete-form" method="post" action="">
+                    {% csrf_token %}
+                    <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition duration-300">
+                        Delete Book
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Actions Modal -->
+<div id="bulk-actions-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
+    <div class="bg-white rounded-xl shadow-lg max-w-md w-full mx-4 overflow-hidden">
+        <div class="p-6">
+            <h3 class="text-lg font-bold text-gray-900 mb-4">Bulk Actions</h3>
+            <p class="text-gray-600 mb-6">
+                Select an action to perform on <span id="selected-count" class="font-medium">0</span> selected books.
+            </p>
+            <div class="space-y-3">
+                <button id="bulk-delete" class="w-full flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition duration-300">
+                    <i class="fas fa-trash-alt mr-2 text-red-600"></i> Delete Selected Books
+                </button>
+                <button id="bulk-available" class="w-full flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition duration-300">
+                    <i class="fas fa-check-circle mr-2 text-green-600"></i> Mark as Available
+                </button>
+                <button id="bulk-borrowed" class="w-full flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition duration-300">
+                    <i class="fas fa-times-circle mr-2 text-red-600"></i> Mark as Borrowed
+                </button>
+                <button id="bulk-export" class="w-full flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition duration-300">
+                    <i class="fas fa-file-export mr-2 text-blue-600"></i> Export Selected Books
+                </button>
+            </div>
+            <div class="mt-6 text-right">
+                <button id="close-bulk-actions" class="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition duration-300">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Delete modal functionality
+        const deleteModal = document.getElementById('delete-modal');
+        const deleteBookTitle = document.getElementById('delete-book-title');
+        const deleteForm = document.getElementById('delete-form');
+        const cancelDelete = document.getElementById('cancel-delete');
+        const deleteButtons = document.querySelectorAll('.delete-book-btn');
+        
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const bookId = this.dataset.id;
+                const bookTitle = this.dataset.title;
+                
+                deleteBookTitle.textContent = bookTitle;
+                deleteForm.action = `/management/books/${bookId}/delete/`; // Correct URL pattern
+                deleteModal.classList.remove('hidden');
+            });
+        });
+        
+        cancelDelete.addEventListener('click', function() {
+            deleteModal.classList.add('hidden');
+        });
+        
+        // Close modal when clicking outside
+        deleteModal.addEventListener('click', function(e) {
+            if (e.target === deleteModal) {
+                deleteModal.classList.add('hidden');
+            }
+        });
+        
+        // Bulk actions functionality
+        const bulkActionsButton = document.getElementById('bulk-actions-button');
+        const bulkActionsModal = document.getElementById('bulk-actions-modal');
+        const closeBulkActions = document.getElementById('close-bulk-actions');
+        const selectedCount = document.getElementById('selected-count');
+        const checkboxes = document.querySelectorAll('.book-checkbox');
+        const selectAllCheckbox = document.querySelector('thead input[type="checkbox"]');
+        
+        // Update selected count
+        function updateSelectedCount() {
+            const checkedBoxes = document.querySelectorAll('.book-checkbox:checked');
+            selectedCount.textContent = checkedBoxes.length;
+        }
+        
+        // Select all checkbox
+        selectAllCheckbox.addEventListener('change', function() {
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+            updateSelectedCount();
+        });
+        
+        // Individual checkboxes
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', updateSelectedCount);
+        });
+        
+        // Open bulk actions modal
+        bulkActionsButton.addEventListener('click', function() {
+            updateSelectedCount();
+            bulkActionsModal.classList.remove('hidden');
+        });
+        
+        // Close bulk actions modal
+        closeBulkActions.addEventListener('click', function() {
+            bulkActionsModal.classList.add('hidden');
+        });
+        
+        // Close modal when clicking outside
+        bulkActionsModal.addEventListener('click', function(e) {
+            if (e.target === bulkActionsModal) {
+                bulkActionsModal.classList.add('hidden');
+            }
+        });
+        
+        // Bulk delete functionality
+        const bulkDelete = document.getElementById('bulk-delete');
+        bulkDelete.addEventListener('click', function() {
+            const checkedBoxes = document.querySelectorAll('.book-checkbox:checked');
+            if (checkedBoxes.length > 0) {
+                if (confirm(`Are you sure you want to delete ${checkedBoxes.length} books? This action cannot be undone.`)) {
+                    // Here you would implement the actual deletion logic
+                    console.log('Deleting books...');
+                    // After deletion, you might want to reload the page
+                    // window.location.reload();
+                }
+            }
+        });
+        
+        // Bulk status change functionality
+        const bulkAvailable = document.getElementById('bulk-available');
+        const bulkBorrowed = document.getElementById('bulk-borrowed');
+        
+        bulkAvailable.addEventListener('click', function() {
+            const checkedBoxes = document.querySelectorAll('.book-checkbox:checked');
+            if (checkedBoxes.length > 0) {
+                // Here you would implement the status change logic
+                console.log('Marking books as available...');
+                // After update, you might want to reload the page
+                // window.location.reload();
+            }
+        });
+        
+        bulkBorrowed.addEventListener('click', function() {
+            const checkedBoxes = document.querySelectorAll('.book-checkbox:checked');
+            if (checkedBoxes.length > 0) {
+                // Here you would implement the status change logic
+                console.log('Marking books as borrowed...');
+                // After update, you might want to reload the page
+                // window.location.reload();
+            }
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}
