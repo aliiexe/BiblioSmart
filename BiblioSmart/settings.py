@@ -58,7 +58,11 @@ ROOT_URLCONF = 'BiblioSmart.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates', os.path.join(BASE_DIR, 'livres','emprunt'  'templates')],
+                'DIRS': [
+            BASE_DIR / 'templates', 
+            os.path.join(BASE_DIR, 'livres', 'templates'),      
+            os.path.join(BASE_DIR, 'auth', 'templates'),
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
