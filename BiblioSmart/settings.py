@@ -83,9 +83,7 @@ DATABASES = {
         'USER': 'root',  # Replace with your MySQL username
         'PASSWORD':'',  # Replace with your MySQL password
         'HOST': 'localhost',  
-        'PORT': '3306', 
-       
-        
+        'PORT': '3306',   
     }
 }
 
