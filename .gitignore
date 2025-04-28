@@ -1,1 +1,8 @@
 ./BiblioSmart/settings.py
+
+*/migrations/
+*/migrations/*.py
+*/migrations/*.pyc
+
+*.pyc
+*.pyo

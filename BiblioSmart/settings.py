@@ -76,14 +76,15 @@ WSGI_APPLICATION = 'BiblioSmart.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'biblio_smart_db',  
-        'USER': 'your_username',   
-        'PASSWORD': 'your_password',
-        'HOST': 'localhost',        
-        'PORT': '3306',             
+        'NAME': 'biblio_smart_db', 
+        'USER': 'root',  # Replace with your MySQL username
+        'PASSWORD':'',  # Replace with your MySQL password
+        'HOST': 'localhost',  
+        'PORT': '3306', 
+       
+        
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
