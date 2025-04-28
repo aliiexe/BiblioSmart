@@ -101,26 +101,34 @@
             <h2 class="text-xl font-bold mb-4">Description</h2>
             <p class="text-gray-700">
                 {% if book.description %}
-                {{ book.description }}
+                {{ book.description|linebreaksbr }}
                 {% else %}
                 No description available for this book.
                 {% endif %}
             </p>
         </div>
 
-        <div class="p-6 border-t border-gray-200">
+                <div class="p-6 border-t border-gray-200">
             <h2 class="text-xl font-bold mb-6">You might also like</h2>
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                {% for i in "12345"|make_list|slice:":5" %}
-                <div class="bg-white rounded-lg shadow overflow-hidden hover:shadow-md transition-shadow duration-300">
+                {% for similar_book in similar_books %}
+                <a href="{% url 'book_detail' similar_book.id %}" class="bg-white rounded-lg shadow overflow-hidden hover:shadow-md transition-shadow duration-300">
                     <div class="relative pb-[140%]">
-                        <img src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Book Cover" class="absolute inset-0 w-full h-full object-cover">
+                        {% if similar_book.image %}
+                        <img src="{{ similar_book.image.url }}" alt="{{ similar_book.titre }}" class="absolute inset-0 w-full h-full object-cover">
+                        {% else %}
+                        <div class="absolute inset-0 w-full h-full bg-gray-200 flex items-center justify-center">
+                            <i class="fas fa-book text-gray-400 text-3xl"></i>
+                        </div>
+                        {% endif %}
                     </div>
                     <div class="p-3">
-                        <h3 class="font-medium text-sm mb-1 truncate">Similar Book Title</h3>
-                        <p class="text-gray-600 text-xs">Author Name</p>
+                        <h3 class="font-medium text-sm mb-1 truncate">{{ similar_book.titre }}</h3>
+                        <p class="text-gray-600 text-xs">{{ similar_book.auteur }}</p>
                     </div>
-                </div>
+                </a>
+                {% empty %}
+                <p class="text-gray-500 text-sm col-span-full">No similar books available.</p>
                 {% endfor %}
             </div>
         </div>

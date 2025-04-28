@@ -8,6 +8,7 @@ from .forms import BookForm
 from django.contrib import messages
 from django.utils import timezone
 from datetime import timedelta
+from django.utils.timezone import now
 
 
 def index(request):
@@ -21,13 +22,15 @@ def add_book(request):
         ISBN = request.POST.get('ISBN')
         categorie = request.POST.get('categorie')
         disponibilite = request.POST.get('disponibilite') == 'on'
+        image = request.FILES.get('image')  
 
         new_book = Livre(
             titre=titre,
             auteur=auteur,
             ISBN=ISBN,
             categorie=categorie,
-            disponibilite=disponibilite
+            disponibilite=disponibilite,
+            image=image  
         )
         new_book.save()
 
@@ -51,19 +54,16 @@ def books(request):
     books = Livre.objects.all()
     categories = Livre.objects.values_list('categorie', flat=True).distinct()
 
-    # Filter by category if provided
     category = request.GET.get('category')
     if category:
         books = books.filter(categorie=category)
 
-    # Filter by availability if provided
     availability = request.GET.get('availability')
     if availability == 'available':
         books = books.filter(disponibilite=True)
     elif availability == 'borrowed':
         books = books.filter(disponibilite=False)
 
-    # Filter by search query if provided
     search_query = request.GET.get('search')
     if search_query:
         books = books.filter(
@@ -72,7 +72,6 @@ def books(request):
             models.Q(ISBN__icontains=search_query)
         )
 
-    # Sort books if provided
     sort = request.GET.get('sort')
     if sort == 'title_asc':
         books = books.order_by('titre')
@@ -88,7 +87,6 @@ def books(request):
 def book_detail(request, book_id):
     book = get_object_or_404(Livre, id=book_id)
     
-    # Get similar books (same category)
     similar_books = Livre.objects.filter(categorie=book.categorie).exclude(id=book.id)[:5]
     
     return render(request, 'book_detail.html', {
@@ -97,37 +95,45 @@ def book_detail(request, book_id):
     })
 
 # @login_required
+
 def borrow_book(request, book_id):
+    print("Borrow book view called")  # Debugging
     if request.method == 'POST':
+        print("POST request received")  # Debugging
         book = get_object_or_404(Livre, id=book_id)
+        print(f"Book found: {book.titre}, Availability: {book.disponibilite}")  # Debugging
         
-        # Check if book is available
         if not book.disponibilite:
+            print("Book is not available")  # Debugging
             messages.error(request, "Ce livre n'est pas disponible actuellement.")
             return redirect('book_detail', book_id=book_id)
         
-        # Get the current user as a Lecteur
         try:
-            lecteur = Lecteur.objects.get(user=request.user)
+            lecteur = Lecteur.objects.get(id=1)
+            print(f"Lecteur found: {lecteur.nom}")  # Debugging
         except Lecteur.DoesNotExist:
+            print("Lecteur with id=1 does not exist")  # Debugging
             messages.error(request, "Votre profil de lecteur n'existe pas.")
             return redirect('book_detail', book_id=book_id)
         
-        # Create a new Emprunt
-        date_retour = timezone.now().date() + timedelta(days=14)  # 2 weeks loan period
-        Emprunt.objects.create(
+        date_emprunt = now().date()  # Set the current date for date_emprunt
+        date_retour = date_emprunt + timedelta(days=14)  # 2 weeks loan period
+        emprunt = Emprunt.objects.create(
             livre=book,
             lecteur=lecteur,
-            date_retour_prevue=date_retour
+            date_emprunt=date_emprunt,  # Add this field
+            date_retour=date_retour
         )
+        print(f"Emprunt created: {emprunt}")  # Debugging
         
-        # Update book availability
         book.disponibilite = False
         book.save()
+        print(f"Book availability updated: {book.disponibilite}")  # Debugging
         
         messages.success(request, f"Vous avez emprunté '{book.titre}'. Date de retour: {date_retour.strftime('%d/%m/%Y')}")
         return redirect('book_detail', book_id=book_id)
     
+    print("Request method is not POST")  # Debugging
     return redirect('book_detail', book_id=book_id)
 
 # @login_required
@@ -135,24 +141,21 @@ def join_waitlist(request, book_id):
     if request.method == 'POST':
         book = get_object_or_404(Livre, id=book_id)
         
-        # Check if book is already available
         if book.disponibilite:
             messages.info(request, "Ce livre est disponible, vous pouvez l'emprunter directement.")
             return redirect('book_detail', book_id=book_id)
         
-        # Get the current user as a Lecteur
         try:
-            lecteur = Lecteur.objects.get(user=request.user)
+            # lecteur = Lecteur.objects.get(user=request.user)
+            lecteur = Lecteur.objects.get(id=1)
         except Lecteur.DoesNotExist:
             messages.error(request, "Votre profil de lecteur n'existe pas.")
             return redirect('book_detail', book_id=book_id)
         
-        # Check if user is already in the waiting list
         if book.liste_attente.filter(id=lecteur.id).exists():
             messages.info(request, "Vous êtes déjà sur la liste d'attente pour ce livre.")
             return redirect('book_detail', book_id=book_id)
         
-        # Add user to waiting list
         book.liste_attente.add(lecteur)
         
         messages.success(request, f"Vous avez été ajouté à la liste d'attente pour '{book.titre}'.")
@@ -206,3 +209,11 @@ def delete_book(request, book_id):
         return redirect('book_management')
     
     return render(request, 'book_delete.html', {'book': book})
+
+def book_detail(request, book_id):
+    book = get_object_or_404(Livre, id=book_id)
+    similar_books = Livre.objects.filter(categorie=book.categorie).exclude(id=book.id)[:5]
+    return render(request, 'book_detail.html', {
+        'book': book,
+        'similar_books': similar_books
+    })

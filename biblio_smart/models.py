@@ -20,9 +20,10 @@ class Livre(models.Model):
     ISBN = models.CharField(max_length=13, unique=True)
     categorie = models.CharField(max_length=100)
     disponibilite = models.BooleanField(default=True)
-    disponibilite = models.BooleanField(default=True)
+    description = models.TextField(blank=True, null=True)
     liste_attente = models.ManyToManyField('Lecteur', blank=True)
-    image = models.ImageField(upload_to='livres/static/images/', blank=True, null=True)
+    # image = models.ImageField(upload_to='livres/static/images/', blank=True, null=True)
+    image = models.ImageField(upload_to='livres/', blank=True, null=True)
     date_ajout = models.DateField(auto_now_add=True)
     date_modification = models.DateField(auto_now=True)
 
