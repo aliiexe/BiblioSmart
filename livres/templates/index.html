@@ -1,0 +1,106 @@
+{% extends "sidebar.html" %}
+{% load static %}
+
+{% block content %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Collection</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/index.css' %}">
+    <style>
+        .book-card {
+            transition: all 0.3s ease;
+            height: 100%;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .book-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .book-title {
+            color: #3a3a3a;
+            font-weight: 600;
+        }
+        
+        .book-author {
+            font-style: italic;
+            color: #555;
+        }
+        
+        .book-category {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .card-footer {
+            background-color: rgba(0, 0, 0, 0.03);
+            border-top: 1px solid rgba(0, 0, 0, 0.125);
+        }
+    </style>
+</head>
+<body class="bg-light text-dark">
+    <div class="container py-5">
+        <h1 class="mb-4 text-primary text-center">Book Collection</h1>
+        
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            {% for book in books %}
+                <div class="col">
+                    <div class="card book-card">
+                        <div class="card-body">
+                            <h5 class="card-title book-title">{{ book.titre }}</h5>
+                            <p class="card-text book-author">By {{ book.auteur }}</p>
+                            <p class="card-text"><small class="text-muted">ISBN: {{ book.ISBN }}</small></p>
+                            <div class="mb-3">
+                                <span class="book-category bg-info bg-opacity-25 text-info">{{ book.categorie }}</span>
+                            </div>
+                            
+                            <div>
+                                
+                                <a href="{% url 'edit_book' book.id %}" class="btn btn-warning">Edit</a>
+
+                                <form method="post" action="{% url 'delete_book' book.id %}" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this book?');">
+                                        Delete
+                                    </button>
+                                </form>
+                                
+                                
+                                
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span>Availability:</span>
+                                {% if book.disponibilite %}
+                                    <span class="badge bg-success">Available</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Checked Out</span>
+                                {% endif %}
+                            </div>
+                            <div class="text-center mt-4">
+                                <a href="{% url 'details_book' book.id %}" class="btn btn-primary">Details</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-4">
+            <a href="{% url 'add_book' %}" class="btn btn-primary">Add New Book</a>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+{% endblock %}  

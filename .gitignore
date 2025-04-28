@@ -1,4 +1,34 @@
 ./BiblioSmart/settings.py
+# Environnement virtuel
+env/
+venv/
+
+# Fichiers Python compilés
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Fichiers de logs
+*.log
+
+# Base de données locale
+*.sqlite3
+
+# Fichiers de l’IDE
+.vscode/
+.idea/
+
+# Fichiers de config système
+.DS_Store
+Thumbs.db
+
+# Fichiers Django migration cachés (optionnel, à toi de choisir)
+*.pyc
+
+# Fichiers temporaires
+*.swp
+*.bak
+
 
 */migrations/
 */migrations/*.py

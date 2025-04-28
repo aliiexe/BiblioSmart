@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Détails Livre</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f4f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .details-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            width: 400px;
+            text-align: center;
+        }
+
+        .details-container h2 {
+            margin-bottom: 1.5rem;
+            color: #333;
+        }
+
+        .book-info {
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+
+        .book-info p {
+            margin: 0.5rem 0;
+            color: #555;
+        }
+
+        .book-info img {
+            width: 100%;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .button-container {
+            text-align: center;
+        }
+
+        .borrow-btn {
+            padding: 0.7rem 2rem;
+            background: #f39c12;
+            color: white;
+            font-size: 1rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .borrow-btn:hover {
+            background: #e67e22;
+        }
+
+        .unavailable-msg {
+            font-size: 1.2rem;
+            color: #e74c3c;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="details-container">
+    <h2>Détails du Livre</h2>
+
+    <div class="book-info">
+        {% if book.image %}
+            <img src="{{ book.image.url }}" alt="Image du Livre" />
+        {% else %}
+            <p>Aucune image disponible pour ce livre.</p>
+        {% endif %}
+        <p><strong>Titre :</strong> {{ book.titre }}</p>
+        <p><strong>Auteur :</strong> {{ book.auteur }}</p>
+        <p><strong>ISBN :</strong> {{ book.ISBN }}</p>
+        <p><strong>Catégorie :</strong> {{ book.categorie }}</p>
+        <p><strong>Disponibilité :</strong> {% if book.disponibilite %} Disponible {% else %} Non disponible {% endif %}</p>
+    </div>
+
+        <div class="button-container">
+        {% if book.disponibilite %}
+            <a href="{% url 'emprunter' book.id %}" class="borrow-btn">Emprunter</a>
+        {% else %}
+            <p class="unavailable-msg">Ce livre n'est pas disponible pour l'emprunt.</p>
+        {% endif %}
+    </div>
+</div>
+
+</body>
+</html>
