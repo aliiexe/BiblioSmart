@@ -86,7 +86,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'biblio_smart_db', 
         'USER': 'root',  # Replace with your MySQL username
-        'PASSWORD':'',  # Replace with your MySQL password
+        'PASSWORD':'Ali10062005bourak@',  # Replace with your MySQL password
         'HOST': 'localhost',  
         'PORT': '3306',   
     }

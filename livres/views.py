@@ -15,34 +15,62 @@ def index(request):
     books = Livre.objects.all()
     return render(request, 'index.html', {'books': books})
 
+# def add_book(request):
+#     if request.method == 'POST':
+#         titre = request.POST.get('titre')
+#         auteur = request.POST.get('auteur')
+#         ISBN = request.POST.get('ISBN')
+#         categorie = request.POST.get('categorie')
+#         disponibilite = request.POST.get('disponibilite') == 'on'
+#         image = request.FILES.get('image')  
+
+#         new_book = Livre(
+#             titre=titre,
+#             auteur=auteur,
+#             ISBN=ISBN,
+#             categorie=categorie,
+#             disponibilite=disponibilite,
+#             image=image  
+#         )
+#         new_book.save()
+
+#         return render(request, 'books.html', {'books': Livre.objects.all()})
+#     else:
+#         return render(request, 'book_form.html')
+
 def add_book(request):
     if request.method == 'POST':
         titre = request.POST.get('titre')
         auteur = request.POST.get('auteur')
         ISBN = request.POST.get('ISBN')
+        
         categorie = request.POST.get('categorie')
-        disponibilite = request.POST.get('disponibilite') == 'on'
-        image = request.FILES.get('image')  
+        if categorie == 'other':
+            categorie = request.POST.get('custom_categorie')
+
+        image = request.FILES.get('image')
+        description = request.POST.get('description') 
 
         new_book = Livre(
             titre=titre,
             auteur=auteur,
             ISBN=ISBN,
             categorie=categorie,
-            disponibilite=disponibilite,
-            image=image  
+            disponibilite=True, 
+            image=image,
+            description=description
         )
         new_book.save()
 
-        return render(request, 'books.html', {'books': Livre.objects.all()})
+        messages.success(request, f"Book '{new_book.titre}' added successfully.")
+        return redirect('book_management')
     else:
-        return render(request, 'book_form.html')
+        categories = Livre.objects.values_list('categorie', flat=True).distinct()
+        return render(request, 'book_form.html', {'categories': categories})
 
 def home(request):
-    # Get the 4 most recently added books
     recent_books = Livre.objects.order_by('-date_ajout')[:4]
     
-    # Get unique categories and their book counts
     categories = Livre.objects.values('categorie').annotate(count=models.Count('categorie'))
     
     return render(request, 'home.html', {
@@ -95,45 +123,44 @@ def book_detail(request, book_id):
     })
 
 # @login_required
-
 def borrow_book(request, book_id):
-    print("Borrow book view called")  # Debugging
+    print("Borrow book view called")  
     if request.method == 'POST':
-        print("POST request received")  # Debugging
+        print("POST request received")  
         book = get_object_or_404(Livre, id=book_id)
-        print(f"Book found: {book.titre}, Availability: {book.disponibilite}")  # Debugging
+        print(f"Book found: {book.titre}, Availability: {book.disponibilite}")  
         
         if not book.disponibilite:
-            print("Book is not available")  # Debugging
+            print("Book is not available")  
             messages.error(request, "Ce livre n'est pas disponible actuellement.")
             return redirect('book_detail', book_id=book_id)
         
         try:
             lecteur = Lecteur.objects.get(id=1)
-            print(f"Lecteur found: {lecteur.nom}")  # Debugging
+            print(f"Lecteur found: {lecteur.nom}")  
         except Lecteur.DoesNotExist:
-            print("Lecteur with id=1 does not exist")  # Debugging
+            print("Lecteur with id=1 does not exist")  
             messages.error(request, "Votre profil de lecteur n'existe pas.")
             return redirect('book_detail', book_id=book_id)
         
-        date_emprunt = now().date()  # Set the current date for date_emprunt
-        date_retour = date_emprunt + timedelta(days=14)  # 2 weeks loan period
+        date_emprunt = now().date() 
+        date_retour = date_emprunt + timedelta(days=14)  
         emprunt = Emprunt.objects.create(
             livre=book,
             lecteur=lecteur,
-            date_emprunt=date_emprunt,  # Add this field
+            date_emprunt=date_emprunt, 
             date_retour=date_retour
         )
-        print(f"Emprunt created: {emprunt}")  # Debugging
+        print(f"Emprunt created: {emprunt}")  
         
         book.disponibilite = False
         book.save()
-        print(f"Book availability updated: {book.disponibilite}")  # Debugging
+        print(f"Book availability updated: {book.disponibilite}")  
         
         messages.success(request, f"Vous avez emprunté '{book.titre}'. Date de retour: {date_retour.strftime('%d/%m/%Y')}")
         return redirect('book_detail', book_id=book_id)
     
-    print("Request method is not POST")  # Debugging
+    print("Request method is not POST")  
     return redirect('book_detail', book_id=book_id)
 
 # @login_required
@@ -179,26 +206,81 @@ def book_management(request):
 #     else:
 #         form = BookForm()
     
-    return render(request, 'book_form.html', {'form': form})
+#     return render(request, 'book_form.html', {'form': form})
 
 def edit_book(request, book_id):
     book = get_object_or_404(Livre, id=book_id)
     
     if request.method == 'POST':
-        form = BookForm(request.POST, request.FILES, instance=book)
-        if form.is_valid():
-            # Handle image removal if checkbox is checked
-            if request.POST.get('remove_image') and book.image:
-                book.image.delete()
-                book.image = None
-            
-            form.save()
-            messages.success(request, 'Book updated successfully.')
-            return redirect('book_management')
+        titre = request.POST.get('titre')
+        auteur = request.POST.get('auteur')
+        ISBN = request.POST.get('ISBN')
+        
+        categorie = request.POST.get('categorie')
+        if categorie == 'other':
+            categorie = request.POST.get('custom_categorie')
+
+        disponibilite = request.POST.get('disponibilite') == 'on'
+
+        image = request.FILES.get('image')
+        description = request.POST.get('description')
+
+        # Update the book fields
+        book.titre = titre
+        book.auteur = auteur
+        book.ISBN = ISBN
+        book.categorie = categorie
+        book.disponibilite = disponibilite
+        book.description = description
+    
+        if image:
+            book.image = image
+
+        # Save the updated book object
+        book.save()
+
+        messages.success(request, f"Book '{book.titre}' updated successfully.")
+        return redirect('book_management')
     else:
         form = BookForm(instance=book)
     
     return render(request, 'book_form.html', {'form': form, 'book': book})
+
+# def edit_book(request, book_id):
+#     book = get_object_or_404(Livre, id=book_id)
+
+    # if request.method == 'POST':
+    #     titre = request.POST.get('titre')
+    #     auteur = request.POST.get('auteur')
+    #     ISBN = request.POST.get('ISBN')
+        
+    #     categorie = request.POST.get('categorie')
+    #     if categorie == 'other':
+    #         categorie = request.POST.get('custom_categorie')
+
+
+    #     disponibilite = request.POST.get('disponibilite') == 'on'
+
+    #     image = request.FILES.get('image')
+    #     description = request.POST.get('description')
+
+    #     book.titre = titre
+    #     book.auteur = auteur
+    #     book.ISBN = ISBN
+    #     book.categorie = categorie
+    #     book.disponibilite = disponibilite
+    #     book.description = description
+
+    #     if image:
+    #         book.image = image
+
+#         book.save()
+
+#         messages.success(request, f"Book '{book.titre}' updated successfully.")
+#         return redirect('book_management')
+    # else:
+    #     categories = Livre.objects.values_list('categorie', flat=True).distinct()
+    #     return render(request, 'book_form.html', {'book': book, 'categories': categories})
 
 def delete_book(request, book_id):
     book = get_object_or_404(Livre, id=book_id)

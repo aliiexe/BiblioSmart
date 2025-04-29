@@ -12,18 +12,16 @@ def inscription(request):
         nom = request.POST.get('nom')
         email = request.POST.get('email')
         mot_de_passe = request.POST.get('mot_de_passe')
-        role = request.POST.get('role', 'lecteur')  # Default role is 'lecteur'
+        role = request.POST.get('role', 'lecteur')
 
-        # Check if the email already exists
         if Utilisateur.objects.filter(email=email).exists():
             messages.error(request, 'Un utilisateur avec cet email existe déjà.')
             return render(request, 'inscription.html')
 
-        # Create a new Utilisateur instance
         utilisateur = Utilisateur(
             nom=nom,
             email=email,
-            mot_de_passe=mot_de_passe,  # Store the raw password (consider hashing it)
+            mot_de_passe=mot_de_passe,
             role=role
         )
         utilisateur.save()
@@ -37,22 +35,17 @@ def connexion(request):
         password = request.POST.get('password')
         
         try:
-            # Check if a user with the given email exists
             utilisateur = Utilisateur.objects.get(email=email)
             
-            # Verify the password
             if utilisateur.mot_de_passe == password:
-                # Store user information in the session
                 request.session['utilisateur_id'] = utilisateur.id
                 request.session['utilisateur_nom'] = utilisateur.nom
                 request.session['utilisateur_role'] = utilisateur.role
                 
-                # Redirect to the main path in the livres app
-                return redirect('/livres')  # 'home' is the name of the main path in the livres app
+                return redirect('/livres')
             else:
                 messages.error(request, 'Mot de passe incorrect.')
         except Utilisateur.DoesNotExist:
             messages.error(request, 'Aucun utilisateur trouvé avec cet email.')
     
-    # Render the login page for GET requests or if login fails
     return render(request, 'connexion.html')

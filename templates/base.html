@@ -101,8 +101,7 @@
                     <div class="mt-10 pt-6 border-t border-gray-800">
                         <h3 class="px-4 mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Categories</h3>
                         <ul class="space-y-1">
-                            {% if request.path == '/' %}
-                                <!-- Show categories for the home page -->
+                            {% if request.path == '/livres/' %}
                                 {% for category in categories %}
                                 <li>
                                     <a href="{% url 'books' %}?category={{ category.categorie }}" class="sidebar-item flex items-center px-4 py-2 text-sm text-gray-300 rounded-lg hover:text-white">
@@ -112,7 +111,6 @@
                                 </li>
                                 {% endfor %}
                             {% else %}
-                                <!-- Show categories for other pages -->
                                 {% for category in categories %}
                                 <li>
                                     <a href="{% url 'books' %}?category={{ category }}" class="sidebar-item flex items-center px-4 py-2 text-sm text-gray-300 rounded-lg hover:text-white">
@@ -127,7 +125,7 @@
             </div>
             
             <div class="absolute bottom-0 w-full p-4 border-t border-gray-800">
-                <a href="#" class="flex items-center px-4 py-3 text-gray-300 rounded-lg hover:bg-gray-800 hover:text-white">
+                <a href="/" class="flex items-center px-4 py-3 text-gray-300 rounded-lg hover:bg-gray-800 hover:text-white">
                     <i class="fas fa-sign-out-alt w-5 h-5 mr-3"></i>
                     <span>Logout</span>
                 </a>
