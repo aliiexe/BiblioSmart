@@ -58,7 +58,8 @@ def update_book(request, book_id):
         book.disponibilite = request.POST.get('disponibilite') == 'on'
 
         # Update the image if a new one is provided
-        if request.FILES.get('image'):
+        if request.FILES.get('image'):   
+               
             book.image = request.FILES.get('image')  # Update image if a new one is provided
 
         book.save()
