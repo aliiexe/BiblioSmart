@@ -58,13 +58,18 @@ ROOT_URLCONF = 'BiblioSmart.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates', os.path.join(BASE_DIR, 'livres','emprunt'  'templates')],
+                'DIRS': [
+            BASE_DIR / 'templates', 
+            os.path.join(BASE_DIR, 'livres', 'templates'),      
+            os.path.join(BASE_DIR, 'auth', 'templates'),
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'livres.context_processors.categories_processor',
             ],
         },
     },
@@ -79,19 +84,15 @@ WSGI_APPLICATION = 'BiblioSmart.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'biblio_smart_db',
-        'USER': 'root',
-        'PASSWORD': '',
-        'HOST': 'localhost',
-        'PORT': '3306',
-        'OPTIONS': {
-            'charset': 'utf8mb4',
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-        },
+        'NAME': 'biblio_smart_db', 
+        'USER': 'root',  # Replace with your MySQL username
+        'PASSWORD':'Ali10062005bourak@',  # Replace with your MySQL password
+        'HOST': 'localhost',  
+        'PORT': '3306',   
     }
 }
 
-# Password validationpip install mysqlclient
+# Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [

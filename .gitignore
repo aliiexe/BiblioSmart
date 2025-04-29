@@ -28,3 +28,11 @@ Thumbs.db
 # Fichiers temporaires
 *.swp
 *.bak
+
+
+*/migrations/
+*/migrations/*.py
+*/migrations/*.pyc
+
+*.pyc
+*.pyo
