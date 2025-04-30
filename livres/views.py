@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from biblio_smart.models import Livre
-from biblio_smart.models import Emprunt, Lecteur
+from biblio_smart.models import Emprunt, Lecteur, Utilisateur
 from django.shortcuts import get_object_or_404, redirect
 from django.db import models
 from .forms import BookForm
@@ -9,7 +9,7 @@ from django.contrib import messages
 from django.utils import timezone
 from datetime import timedelta
 from django.utils.timezone import now
-
+from .decorators import custom_login_required
 
 def index(request):
     books = Livre.objects.all()
@@ -114,53 +114,83 @@ def books(request):
 
 def book_detail(request, book_id):
     book = get_object_or_404(Livre, id=book_id)
-    
     similar_books = Livre.objects.filter(categorie=book.categorie).exclude(id=book.id)[:5]
-    
+
+    utilisateur_id = request.session.get('utilisateur_id')
+    utilisateur = Utilisateur.objects.get(id=utilisateur_id)
+
+    # Let's be very explicit with the query to find the emprunt record
+    emprunt = None
+    try:
+        # Use the exact values we know exist in the database
+        emprunt = Emprunt.objects.filter(
+            livre_id=book.id,
+            lecteur_id=utilisateur.id,
+            returned=0  # Explicitly use 0 instead of False
+        ).first()
+        print(f"Emprunt query result: {emprunt}")
+    except Exception as e:
+        print(f"Error fetching emprunt: {e}")
+
     return render(request, 'book_detail.html', {
         'book': book,
-        'similar_books': similar_books
+        'similar_books': similar_books,
+        'utilisateur': utilisateur,
+        'emprunt': emprunt,
+        'active_emprunt': emprunt is not None,
     })
 
 # @login_required
 def borrow_book(request, book_id):
-    print("Borrow book view called")  
     if request.method == 'POST':
-        print("POST request received")  
         book = get_object_or_404(Livre, id=book_id)
-        print(f"Book found: {book.titre}, Availability: {book.disponibilite}")  
         
         if not book.disponibilite:
-            print("Book is not available")  
             messages.error(request, "Ce livre n'est pas disponible actuellement.")
             return redirect('book_detail', book_id=book_id)
         
+        utilisateur_id = request.session.get('utilisateur_id')
+        if not utilisateur_id:
+            messages.error(request, "Vous devez être connecté pour emprunter un livre.")
+            return redirect('connexion')
+        
         try:
-            lecteur = Lecteur.objects.get(id=1)
-            print(f"Lecteur found: {lecteur.nom}")  
+            lecteur = Lecteur.objects.get(id=utilisateur_id)
         except Lecteur.DoesNotExist:
-            print("Lecteur with id=1 does not exist")  
             messages.error(request, "Votre profil de lecteur n'existe pas.")
             return redirect('book_detail', book_id=book_id)
         
-        date_emprunt = now().date() 
-        date_retour = date_emprunt + timedelta(days=14)  
-        emprunt = Emprunt.objects.create(
+        start_date = now().date()
+
+        end_date = request.POST.get('end_date')
+        
+        if not end_date:
+            messages.error(request, "Veuillez fournir une date de fin valide.")
+            return redirect('book_detail', book_id=book_id)
+
+        try:
+            end_date = timezone.datetime.strptime(end_date, '%Y-%m-%d').date()
+        except ValueError:
+            messages.error(request, "La date de fin fournie n'est pas valide.")
+            return redirect('book_detail', book_id=book_id)
+
+        if end_date <= start_date:
+            messages.error(request, "La date de fin doit être après la date de début.")
+            return redirect('book_detail', book_id=book_id)
+        
+        Emprunt.objects.create(
             livre=book,
             lecteur=lecteur,
-            date_emprunt=date_emprunt, 
-            date_retour=date_retour
+            date_emprunt=start_date,
+            date_retour=end_date
         )
-        print(f"Emprunt created: {emprunt}")  
         
         book.disponibilite = False
         book.save()
-        print(f"Book availability updated: {book.disponibilite}")  
         
-        messages.success(request, f"Vous avez emprunté '{book.titre}'. Date de retour: {date_retour.strftime('%d/%m/%Y')}")
+        messages.success(request, f"Vous avez emprunté '{book.titre}' du {start_date} au {end_date}.")
         return redirect('book_detail', book_id=book_id)
     
-    print("Request method is not POST")  
     return redirect('book_detail', book_id=book_id)
 
 # @login_required
@@ -172,9 +202,9 @@ def join_waitlist(request, book_id):
             messages.info(request, "Ce livre est disponible, vous pouvez l'emprunter directement.")
             return redirect('book_detail', book_id=book_id)
         
+        utilisateur_id = request.session.get('utilisateur_id')
         try:
-            # lecteur = Lecteur.objects.get(user=request.user)
-            lecteur = Lecteur.objects.get(id=1)
+            lecteur = Lecteur.objects.get(id=utilisateur_id)
         except Lecteur.DoesNotExist:
             messages.error(request, "Votre profil de lecteur n'existe pas.")
             return redirect('book_detail', book_id=book_id)
@@ -220,23 +250,26 @@ def edit_book(request, book_id):
         if categorie == 'other':
             categorie = request.POST.get('custom_categorie')
 
-        disponibilite = request.POST.get('disponibilite') == 'on'
+        new_disponibilite = request.POST.get('disponibilite') == 'on'
 
-        image = request.FILES.get('image')
-        description = request.POST.get('description')
+        if not book.disponibilite and new_disponibilite:
+            active_emprunts = Emprunt.objects.filter(livre=book, returned=False)
+            for emprunt in active_emprunts:
+                emprunt.returned = True
+                emprunt.date_retour = now().date()
+                emprunt.save()
+                print(f"Updated emprunt {emprunt.id} to returned=True")
 
-        # Update the book fields
         book.titre = titre
         book.auteur = auteur
         book.ISBN = ISBN
         book.categorie = categorie
-        book.disponibilite = disponibilite
-        book.description = description
-    
-        if image:
-            book.image = image
+        book.disponibilite = new_disponibilite
+        book.description = request.POST.get('description')
 
-        # Save the updated book object
+        if 'image' in request.FILES:
+            book.image = request.FILES.get('image')
+
         book.save()
 
         messages.success(request, f"Book '{book.titre}' updated successfully.")
@@ -292,10 +325,56 @@ def delete_book(request, book_id):
     
     return render(request, 'book_delete.html', {'book': book})
 
-def book_detail(request, book_id):
+
+def toggle_favorite(request, book_id):
     book = get_object_or_404(Livre, id=book_id)
-    similar_books = Livre.objects.filter(categorie=book.categorie).exclude(id=book.id)[:5]
-    return render(request, 'book_detail.html', {
-        'book': book,
-        'similar_books': similar_books
-    })
+    utilisateur = get_object_or_404(Utilisateur, id=request.session.get('utilisateur_id'))
+
+    if book in utilisateur.favorites.all():
+        utilisateur.favorites.remove(book)
+        messages.success(request, f"'{book.titre}' has been removed from your favorites.")
+    else:
+        utilisateur.favorites.add(book)
+        messages.success(request, f"'{book.titre}' has been added to your favorites.")
+
+    return redirect('book_detail', book_id=book_id)
+
+# @custom_login_required
+def return_book(request, book_id):
+    book = get_object_or_404(Livre, id=book_id)
+    utilisateur_id = request.session.get('utilisateur_id')
+
+    if not utilisateur_id:
+        messages.error(request, "You must be logged in to return a book.")
+        return redirect('connexion')
+
+    utilisateur = get_object_or_404(Utilisateur, id=utilisateur_id)
+
+    print(f"User: {utilisateur.nom}, Book: {book.titre}")
+
+    emprunt = Emprunt.objects.filter(livre=book, lecteur=utilisateur).order_by('-id').first()
+
+    if emprunt:
+        print(f"Emprunt found: ID={emprunt.id}, Start Date={emprunt.date_emprunt}, Current Return Date={emprunt.date_retour}")
+
+        emprunt.date_retour = now().date()
+        emprunt.returned = True
+        emprunt.save()
+
+        print(f"Updated Emprunt: ID={emprunt.id}, New Return Date={emprunt.date_retour}")
+
+        book.disponibilite = True
+        book.save()
+
+        messages.success(request, f"You have successfully returned '{book.titre}'. The return date has been updated.")
+    else:
+        print("No active borrowing record found for this user and book.")
+        messages.error(request, "You cannot return a book that you haven't borrowed.")
+
+    return redirect('book_detail', book_id=book_id)
+
+
+def logout(request):
+    request.session.flush()
+    messages.success(request, 'Vous êtes déconnecté avec succès.')
+    return redirect('connexion')

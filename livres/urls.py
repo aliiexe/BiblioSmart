@@ -21,10 +21,14 @@ urlpatterns = [
     path('books/<int:book_id>/', views.book_detail, name='book_detail'),
     path('books/<int:book_id>/borrow/', views.borrow_book, name='borrow_book'),
     path('books/<int:book_id>/waitlist/', views.join_waitlist, name='join_waitlist'),
+    path('books/<int:book_id>/favorite/', views.toggle_favorite, name='toggle_favorite'),
+    path('books/<int:book_id>/return/', views.return_book, name='return_book'),
     
     # Book Management URLs
     path('management/books/', views.book_management, name='book_management'),
     path('management/books/add/', views.add_book, name='add_book'),
     path('management/books/<int:book_id>/edit/', views.edit_book, name='edit_book'),
     path('management/books/<int:book_id>/delete/', views.delete_book, name='delete_book'),
+
+    path('logout/', views.logout, name='logout'),
 ]

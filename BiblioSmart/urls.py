@@ -12,6 +12,7 @@ urlpatterns = [
     path('livres/', include('livres.urls')),
     # path('auth/', include('auth.urls')),
     path('emprunt/', include('emprunt.urls')),
+    path('utilisateurs/', include('utilisateurs.urls')),
 ]
 
 if settings.DEBUG:

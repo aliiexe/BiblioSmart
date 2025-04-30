@@ -70,30 +70,75 @@
                     </div>
                 </div>
 
-                <div class="flex flex-wrap gap-4">
+            <div class="flex flex-wrap gap-4">
+                <!-- Borrow Button -->
+                <button type="button" 
+                    class="{% if book.disponibilite %}bg-indigo-600 hover:bg-indigo-700 text-white{% else %}bg-gray-300 text-gray-500 cursor-not-allowed{% endif %} font-bold py-3 px-6 rounded-lg shadow transition duration-300"
+                    {% if not book.disponibilite %}disabled{% endif %}
+                    onclick="openBorrowModal()">
+                <i class="fas fa-book-reader mr-2"></i> Borrow
+                </button>
+
+                                <!-- Return Button -->
+                {% if not book.disponibilite and emprunt and emprunt.lecteur.id == utilisateur.id %}
+                <form method="post" action="{% url 'return_book' book.id %}">
+                {% csrf_token %}
+                <button type="submit" 
+                        class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg shadow transition duration-300">
+                    <i class="fas fa-undo mr-2"></i> Return
+                </button>
+                </form>
+                {% endif %}
+            
+                {% if not book.disponibilite %}
+                <!-- Join Waitlist Button -->
+                <form method="post" action="{% url 'join_waitlist' book.id %}">
+                    {% csrf_token %}
+                    <button type="submit" 
+                            class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-lg shadow transition duration-300">
+                        <i class="fas fa-clock mr-2"></i> Join the waiting list
+                    </button>
+                </form>
+                {% endif %}
+            
+                <form method="post" action="{% url 'toggle_favorite' book.id %}">
+                    {% csrf_token %}
+                    <button type="submit" 
+                            class="bg-white hover:bg-gray-100 text-gray-900 font-bold py-3 px-6 rounded-lg shadow transition duration-300 border border-gray-300">
+                        <i class="{% if utilisateur and book in utilisateur.favorites.all %}fas fa-star text-yellow-500{% else %}far fa-star text-gray-500{% endif %} mr-2"></i>
+                        {% if utilisateur and book in utilisateur.favorites.all %}
+                        Remove from Favorites
+                        {% else %}
+                        Add to Favorites
+                        {% endif %}
+                    </button>
+                </form>
+            </div>
+            
+            <div id="borrowModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
+                <div class="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
+                    <h2 class="text-xl font-bold mb-4">Borrow Book</h2>
                     <form method="post" action="{% url 'borrow_book' book.id %}">
                         {% csrf_token %}
-                        <button type="submit" 
-                                class="{% if book.disponibilite %}bg-indigo-600 hover:bg-indigo-700 text-white{% else %}bg-gray-300 text-gray-500 cursor-not-allowed{% endif %} font-bold py-3 px-6 rounded-lg shadow transition duration-300"
-                                {% if not book.disponibilite %}disabled{% endif %}>
-                            <i class="fas fa-book-reader mr-2"></i> Borrow
-                        </button>
+                        <div class="mb-4">
+                            <label for="end_date" class="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                            <input type="date" id="end_date" name="end_date" required 
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-transparent">
+                        </div>
+                        <div class="flex justify-end space-x-3">
+                            <button type="button" onclick="closeBorrowModal()" 
+                                    class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition duration-300">
+                                Cancel
+                            </button>
+                            <button type="submit" 
+                                    class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition duration-300">
+                                Confirm
+                            </button>
+                        </div>
                     </form>
-                    
-                    {% if not book.disponibilite %}
-                    <form method="post" action="{% url 'join_waitlist' book.id %}">
-                        {% csrf_token %}
-                        <button type="submit" 
-                                class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-lg shadow transition duration-300">
-                            <i class="fas fa-clock mr-2"></i> Join the waiting list
-                        </button>
-                    </form>
-                    {% endif %}
-                    
-                    <a href="#" class="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 font-bold py-3 px-6 rounded-lg shadow transition duration-300">
-                        <i class="fas fa-heart mr-2"></i> Add to favorites
-                    </a>
                 </div>
+            </div>
+            
             </div>
         </div>
 
@@ -134,4 +179,13 @@
         </div>
     </div>
 </div>
+<script>
+    function openBorrowModal() {
+        document.getElementById('borrowModal').classList.remove('hidden');
+    }
+
+    function closeBorrowModal() {
+        document.getElementById('borrowModal').classList.add('hidden');
+    }
+</script>
 {% endblock %}
