@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from biblio_smart.models import Livre
-from biblio_smart.models import Emprunt, Lecteur, Utilisateur
+from biblio_smart.models import Emprunt, Lecteur, Utilisateur, Notification
 from django.shortcuts import get_object_or_404, redirect
 from django.db import models
 from .forms import BookForm
@@ -117,20 +117,35 @@ def book_detail(request, book_id):
     similar_books = Livre.objects.filter(categorie=book.categorie).exclude(id=book.id)[:5]
 
     utilisateur_id = request.session.get('utilisateur_id')
-    utilisateur = Utilisateur.objects.get(id=utilisateur_id)
+    utilisateur_role = request.session.get('utilisateur_role')
+    is_in_waitlist = False
+    
+    try:
+        utilisateur = Utilisateur.objects.get(id=utilisateur_id)
+    except (Utilisateur.DoesNotExist, TypeError):
+        utilisateur = None
 
     # Let's be very explicit with the query to find the emprunt record
     emprunt = None
-    try:
-        # Use the exact values we know exist in the database
-        emprunt = Emprunt.objects.filter(
-            livre_id=book.id,
-            lecteur_id=utilisateur.id,
-            returned=0  # Explicitly use 0 instead of False
-        ).first()
-        print(f"Emprunt query result: {emprunt}")
-    except Exception as e:
-        print(f"Error fetching emprunt: {e}")
+    if utilisateur:
+        try:
+            # Use the exact values we know exist in the database
+            emprunt = Emprunt.objects.filter(
+                livre_id=book.id,
+                lecteur_id=utilisateur.id,
+                returned=0  # Explicitly use 0 instead of False
+            ).first()
+            
+            # Check if the user is in the waitlist (only for readers)
+            if utilisateur_role == 'lecteur':
+                try:
+                    lecteur = Lecteur.objects.get(id=utilisateur.id)
+                    is_in_waitlist = book.liste_attente.filter(id=lecteur.id).exists()
+                except Lecteur.DoesNotExist:
+                    pass
+                
+        except Exception as e:
+            print(f"Error fetching emprunt: {e}")
 
     return render(request, 'book_detail.html', {
         'book': book,
@@ -138,16 +153,13 @@ def book_detail(request, book_id):
         'utilisateur': utilisateur,
         'emprunt': emprunt,
         'active_emprunt': emprunt is not None,
+        'is_in_waitlist': is_in_waitlist,  # Add this to the context
     })
 
 # @login_required
 def borrow_book(request, book_id):
     if request.method == 'POST':
         book = get_object_or_404(Livre, id=book_id)
-        
-        if not book.disponibilite:
-            messages.error(request, "Ce livre n'est pas disponible actuellement.")
-            return redirect('book_detail', book_id=book_id)
         
         utilisateur_id = request.session.get('utilisateur_id')
         if not utilisateur_id:
@@ -159,6 +171,30 @@ def borrow_book(request, book_id):
         except Lecteur.DoesNotExist:
             messages.error(request, "Votre profil de lecteur n'existe pas.")
             return redirect('book_detail', book_id=book_id)
+        
+        # Check waiting list logic
+        waiting_list = list(book.liste_attente.all())
+        
+        if not book.disponibilite:
+            messages.error(request, "Ce livre n'est pas disponible actuellement.")
+            return redirect('book_detail', book_id=book_id)
+        elif waiting_list:
+            # Someone is on the waiting list
+            first_in_line = waiting_list[0] if waiting_list else None
+            
+            if first_in_line and first_in_line.id == lecteur.id:
+                # Current user is first in line, remove from waiting list
+                book.liste_attente.remove(lecteur)
+                messages.info(request, "Vous étiez premier(e) sur la liste d'attente et pouvez maintenant emprunter ce livre.")
+            else:
+                # Someone else is first in line
+                is_in_waitlist = book.liste_attente.filter(id=lecteur.id).exists()
+                if is_in_waitlist:
+                    position = waiting_list.index(lecteur) + 1
+                    messages.error(request, f"Vous êtes en position {position} sur la liste d'attente. Veuillez attendre votre tour.")
+                else:
+                    messages.error(request, "Il y a des personnes sur la liste d'attente qui ont priorité pour emprunter ce livre.")
+                return redirect('book_detail', book_id=book_id)
         
         # Use timezone.now() instead of now()
         start_date = timezone.now().date()
@@ -191,6 +227,26 @@ def borrow_book(request, book_id):
         
         book.disponibilite = False
         book.save()
+
+        # Create notification about borrowed book
+        try:
+            # Get the Utilisateur object for the lecteur
+            utilisateur = Utilisateur.objects.get(id=lecteur.id)
+            
+            # Format dates for better readability
+            formatted_start = start_date.strftime('%d %b %Y')
+            formatted_end = end_date.strftime('%d %b %Y')
+            
+            # Create the notification
+            Notification.objects.create(
+                user=utilisateur,
+                message=f"You borrowed '{book.titre}'. Return by: {formatted_end}",
+                type='book_borrowed',
+                link=f'/livres/book/{book.id}/',
+                read=False
+            )
+        except Exception as e:
+            print(f"Failed to create notification: {e}")
         
         messages.success(request, f"Vous avez emprunté '{book.titre}' du {start_date} au {end_date}.")
         return redirect('book_detail', book_id=book_id)
@@ -356,21 +412,86 @@ def return_book(request, book_id):
 
     print(f"User: {utilisateur.nom}, Book: {book.titre}")
 
-    emprunt = Emprunt.objects.filter(livre=book, lecteur=utilisateur).order_by('-id').first()
+    # Find the latest active loan for this book and user
+    emprunt = Emprunt.objects.filter(
+        livre=book, 
+        lecteur=utilisateur,
+        returned=False
+    ).order_by('-id').first()
 
     if emprunt:
-        print(f"Emprunt found: ID={emprunt.id}, Start Date={emprunt.date_emprunt}, Current Return Date={emprunt.date_retour}")
+        print(f"Emprunt found: ID={emprunt.id}, Start Date={emprunt.date_emprunt}, Due Date={emprunt.date_retour_prevue}")
 
-        emprunt.date_retour = now().date()
+        # Current date for return
+        today = timezone.now().date()
+        emprunt.date_retour = today
         emprunt.returned = True
+        
+        # Check if the book is returned late
+        is_late = today > emprunt.date_retour_prevue
+        days_late = 0
+        fee_amount = 0
+        
+        if is_late:
+            # Calculate days late and fees (€0.50 per day)
+            days_late = (today - emprunt.date_retour_prevue).days
+            fee_amount = days_late * 0.50
+            emprunt.fee = fee_amount
+            
+            # Create notification about late return
+            Notification.objects.create(
+                user=utilisateur,
+                message=f"You returned '{book.titre}' {days_late} days late. Fee: €{fee_amount:.2f}",
+                type='book_returned_late',
+                link=f'/emprunt/fees/{utilisateur.id}/',
+                read=False
+            )
+            
+            messages.warning(
+                request, 
+                f"You have returned '{book.titre}' {days_late} days late. A fee of €{fee_amount:.2f} has been added to your account."
+            )
+        else:
+            # Create notification about on-time return
+            Notification.objects.create(
+                user=utilisateur,
+                message=f"You returned '{book.titre}' on time. Thank you!",
+                type='book_returned',
+                link=f'/livres/book/{book.id}/',
+                read=False
+            )
+            
+            messages.success(
+                request, 
+                f"You have successfully returned '{book.titre}' on time. Thank you!"
+            )
+        
         emprunt.save()
-
-        print(f"Updated Emprunt: ID={emprunt.id}, New Return Date={emprunt.date_retour}")
-
+        
+        # Make the book available again
         book.disponibilite = True
         book.save()
-
-        messages.success(request, f"You have successfully returned '{book.titre}'. The return date has been updated.")
+        
+        # Check if anyone is on the waiting list
+        waiting_list = list(book.liste_attente.all())
+        if waiting_list:
+            next_reader = waiting_list[0]
+            
+            # Notify the next reader
+            try:
+                next_user = Utilisateur.objects.get(id=next_reader.id)
+                
+                Notification.objects.create(
+                    user=next_user,
+                    message=f"The book '{book.titre}' you were waiting for is now available! You can borrow it now.",
+                    type='book_available',
+                    link=f'/livres/book/{book.id}/',
+                    read=False
+                )
+                
+                print(f"Notified next reader {next_reader.nom} about book availability")
+            except Exception as e:
+                print(f"Failed to notify next reader: {e}")
     else:
         print("No active borrowing record found for this user and book.")
         messages.error(request, "You cannot return a book that you haven't borrowed.")

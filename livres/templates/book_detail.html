@@ -71,6 +71,7 @@
                 </div>
 
             <div class="flex flex-wrap gap-4">
+                {% if request.session.utilisateur_role == 'lecteur' %}
                 <!-- Borrow Button -->
                 <button type="button" 
                     class="{% if book.disponibilite %}bg-indigo-600 hover:bg-indigo-700 text-white{% else %}bg-gray-300 text-gray-500 cursor-not-allowed{% endif %} font-bold py-3 px-6 rounded-lg shadow transition duration-300"
@@ -92,14 +93,22 @@
             
                 {% if not book.disponibilite %}
                     {% if not emprunt or emprunt.lecteur.id != request.session.utilisateur_id %}
-                    <!-- Join Waitlist Button -->
-                    <form method="post" action="{% url 'join_waitlist' book.id %}">
-                        {% csrf_token %}
-                        <button type="submit" 
-                                class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-lg shadow transition duration-300">
-                            <i class="fas fa-clock mr-2"></i> Join the waiting list
-                        </button>
-                    </form>
+                        {% if is_in_waitlist %}
+                            <!-- Already in waitlist message -->
+                            <button disabled
+                                    class="bg-gray-300 text-gray-600 font-bold py-3 px-6 rounded-lg shadow cursor-not-allowed transition duration-300">
+                                <i class="fas fa-check mr-2"></i> Already in waiting list
+                            </button>
+                        {% else %}
+                            <!-- Join Waitlist Button -->
+                            <form method="post" action="{% url 'join_waitlist' book.id %}">
+                                {% csrf_token %}
+                                <button type="submit" 
+                                        class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-lg shadow transition duration-300">
+                                    <i class="fas fa-clock mr-2"></i> Join the waiting list
+                                </button>
+                            </form>
+                        {% endif %}
                     {% endif %}
                 {% endif %}
             
@@ -115,6 +124,7 @@
                         {% endif %}
                     </button>
                 </form>
+                {% endif %}
             </div>
             
             <div id="borrowModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">

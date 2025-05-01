@@ -78,7 +78,7 @@
         <div class="p-6">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-lg font-semibold text-gray-900">Current Loans</h2>
-                <a href="{% url 'user_loans' request.session.utilisateur_id class="text-sm text-gray-600 hover:text-gray-900">View All</a>
+                <a href="{% url 'user_loans' request.session.utilisateur_id %}" class="text-sm text-gray-600 hover:text-gray-900">View All</a>
             </div>
 
             {% if current_loans %}

@@ -1,136 +1,142 @@
-<!-- filepath: c:\Users\hp\Desktop\PROJET\BiblioSmart\auth\templates\inscription.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inscription</title>
-</head>
-<body>
-    <div class="container">
-        <div class="container">
-            <div class="form">
-                <form method="post" action="{% url 'inscription' %}">
-                    {% csrf_token %}
-                    <h1>Inscription</h1>
-                    
-                    <label for="nom">Nom</label>
-                    <input type="text" id="nom" name="nom" required>
-                    
-                    <label for="email">Email</label>
-                    <input type="email" id="email" name="email" required>
-                    
-                    <label for="mot_de_passe">Mot de passe</label>
-                    <input type="password" id="mot_de_passe" name="mot_de_passe" required>
-                    
-                    <label for="role">Rôle</label>
-                    <select id="role" name="role" required>
-                        <option value="lecteur">Lecteur</option>
-                        <option value="bibliothecaire">Bibliothécaire</option>
-                    </select>
-                    
-                    <button type="submit">S'inscrire</button>
-                </form>
-            </div>
-        </div>      
-    </div>
+    <title>BiblioSmart - Inscription</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* CSS */
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap');
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
-        }
-
-        h1 {
-            margin: 20px 0;
-        }
-
         body {
-            min-height: 100vh;
-            width: 100%;
-            background: #009579;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .container {
-            width: 400px;
-            background: #fff;
-            border-radius: 7px;
-            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
-        }
-
-        .container .form {
-            padding: 30px;
-        }
-
-        label {
-            padding: 10px 0;
-            color: #009579;
-            cursor: pointer;
-        }
-
-        input, select {
-            width: 100%;
-            padding: 10px;
-            font-size: 17px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            outline: none;
-            margin-bottom: 15px;
-            margin-top: 10px;
-        }
-
-        a {
-            font-size: 16px;
-            color: #009579;
-            text-decoration: none;
-        }
-
-        a:hover {
-            text-decoration: underline;
-        }
-
-        button {
-            color: #fff;
-            background: #009579;
-            width: 100%;
-            padding: 10px;
-            font-size: 17px;
-            margin-top: 10px;
-            border: none;
-            border-radius: 6px;
-            outline: none;
-        }
-
-        button:hover {
-            background: #006653;
-        }
-
-        .link {
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        .error {
-            background-color: red;
-            color: #fff;
-            border-radius: 6px;
-            padding: 10px;
-            margin-bottom: 10px;
-            font-size: 14px;      
-            text-align: center; 
-        }
-
-        ul {
-            list-style: none;
-            color: red;
+            font-family: 'Inter', sans-serif;
         }
     </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+    <div class="w-full max-w-md">
+        <!-- Library Logo/Icon -->
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-900 text-white mb-4">
+                <i class="fas fa-book-open text-3xl"></i>
+            </div>
+            <h1 class="text-3xl font-bold text-gray-900">BiblioSmart</h1>
+            <p class="text-gray-600">Système de gestion de bibliothèque</p>
+        </div>
+        
+        <!-- Card -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden">
+            <!-- Registration Form -->
+            <div class="p-8">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">Inscription</h2>
+                
+                <!-- Messages -->
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="mb-6 p-4 rounded-md {% if message.tags == 'error' %}bg-red-100 text-red-800{% elif message.tags == 'success' %}bg-green-100 text-green-800{% else %}bg-blue-100 text-blue-800{% endif %}">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    {% if message.tags == 'error' %}
+                                        <i class="fas fa-exclamation-circle text-red-500"></i>
+                                    {% elif message.tags == 'success' %}
+                                        <i class="fas fa-check-circle text-green-500"></i>
+                                    {% else %}
+                                        <i class="fas fa-info-circle text-blue-500"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm font-medium">{{ message }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                
+                <form method="post" action="{% url 'inscription' %}">
+                    {% csrf_token %}
+                    <!-- Name -->
+                    <div class="mb-6">
+                        <label for="nom" class="block text-sm font-medium text-gray-700 mb-2">Nom</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-user text-gray-400"></i>
+                            </div>
+                            <input type="text" id="nom" name="nom" required 
+                                class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm" 
+                                placeholder="Votre nom">
+                        </div>
+                    </div>
+                    
+                    <!-- Email -->
+                    <div class="mb-6">
+                        <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-envelope text-gray-400"></i>
+                            </div>
+                            <input type="email" id="email" name="email" required 
+                                class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm" 
+                                placeholder="votre@email.com">
+                        </div>
+                    </div>
+                    
+                    <!-- Password -->
+                    <div class="mb-6">
+                        <label for="mot_de_passe" class="block text-sm font-medium text-gray-700 mb-2">Mot de passe</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-lock text-gray-400"></i>
+                            </div>
+                            <input type="password" id="mot_de_passe" name="mot_de_passe" required 
+                                class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm" 
+                                placeholder="••••••••">
+                        </div>
+                    </div>
+                    
+                    <!-- Role -->
+                    <div class="mb-6">
+                        <label for="role" class="block text-sm font-medium text-gray-700 mb-2">Rôle</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-user-tag text-gray-400"></i>
+                            </div>
+                            <select id="role" name="role" required
+                                class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm appearance-none bg-white">
+                                <option value="lecteur">Lecteur</option>
+                                <option value="bibliothecaire">Bibliothécaire</option>
+                            </select>
+                            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                <i class="fas fa-chevron-down text-gray-400"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" 
+                        class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200">
+                        S'inscrire
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Footer -->
+            <div class="px-8 py-4 bg-gray-50 border-t border-gray-200 sm:px-10">
+                <p class="text-sm text-center text-gray-600">
+                    Déjà inscrit? 
+                    <a href="{% url 'connexion' %}" class="font-medium text-blue-600 hover:text-blue-500">
+                        Se connecter
+                    </a>
+                </p>
+            </div>
+        </div>
+        
+        <!-- Bottom Text -->
+        <div class="mt-8 text-center">
+            <p class="text-xs text-gray-500">
+                &copy; 2023 BiblioSmart. Tous droits réservés.
+            </p>
+        </div>
+    </div>
 </body>
 </html>

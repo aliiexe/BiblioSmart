@@ -19,11 +19,6 @@
                     <h1 class="text-2xl font-bold text-gray-900">Loan Management</h1>
                     <p class="text-gray-600">Track and manage all library loans</p>
                 </div>
-                <div class="flex flex-wrap gap-3">
-                    <a href="{% url 'new_loan' %}" class="flex items-center px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition duration-300">
-                        <i class="fas fa-plus mr-2"></i> New Loan
-                    </a>
-                </div>
             </div>
         </div>
     </div>
@@ -55,9 +50,9 @@
                         <i class="fas fa-exclamation-circle text-red-600"></i>
                     </div>
                 </div>
-                <div class="text-3xl font-bold text-gray-900 mb-1">{{ overdue_loans.count }}</div>
+                <div class="text-3xl font-bold text-gray-900 mb-1">{{ overdue_loans.count|add:returned_late.count }}</div>
                 <p class="text-sm text-gray-600">
-                    {{ due_soon.count }} due soon
+                    {{ overdue_loans.count }} current, {{ returned_late.count }} returned late
                 </p>
             </div>
         </div>
@@ -95,87 +90,91 @@
         </div>
     </div>
 
-    <!-- Overdue Loans -->
+        <!-- Overdue Loans -->
     <div class="bg-white rounded-2xl shadow-sm overflow-hidden mb-6">
         <div class="p-6">
             <h2 class="text-lg font-semibold text-gray-900 mb-4">Overdue Loans</h2>
-
-            {% if overdue_loans %}
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                User
-                            </th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Book
-                            </th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Due Date
-                            </th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Days Overdue
-                            </th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Fee
-                            </th>
-                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Actions
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        {% for loan in overdue_loans %}
-                        <tr class="bg-red-50">
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="flex items-center">
-                                    <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center mr-3">
-                                        <span class="text-gray-600 font-medium">{{ loan.utilisateur.nom|slice:":1" }}</span>
-                                    </div>
-                                    <div class="text-sm font-medium text-gray-900">
-                                        {{ loan.utilisateur.nom }}
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="flex items-center">
-                                    <div class="h-10 w-8 flex-shrink-0 mr-4">
-                                        {% if loan.livre.image %}
-                                        <img class="h-10 w-8 object-cover rounded" src="{{ loan.livre.image.url }}" alt="{{ loan.livre.titre }}">
-                                        {% else %}
-                                        <div class="h-10 w-8 bg-gray-200 rounded flex items-center justify-center">
-                                            <i class="fas fa-book text-gray-400 text-xs"></i>
+    
+            {% if overdue_loans or returned_late %}
+                <!-- Current Overdue Section -->
+                {% if overdue_loans %}
+                <h3 class="text-md font-medium text-gray-700 mb-3">Currently Overdue</h3>
+                <div class="overflow-x-auto mb-6">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <!-- Your existing table for current overdue loans -->
+                        <!-- ... keep thead and rows for overdue_loans ... -->
+                    </table>
+                </div>
+                {% endif %}
+                
+                <!-- Returned Late Section -->
+                {% if returned_late %}
+                <h3 class="text-md font-medium text-gray-700 mb-3">Returned Late</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Book</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Due Date</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Return Date</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Days Late</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fee</th>
+                                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for loan in returned_late %}
+                            <tr class="bg-orange-50">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center mr-3">
+                                            <span class="text-gray-600 font-medium">{{ loan.lecteur.nom|slice:":1" }}</span>
                                         </div>
-                                        {% endif %}
+                                        <div class="text-sm font-medium text-gray-900">
+                                            {{ loan.lecteur.nom }}
+                                        </div>
                                     </div>
-                                    <div class="text-sm font-medium text-gray-900">
-                                        {{ loan.livre.titre }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="h-10 w-8 flex-shrink-0 mr-4">
+                                            {% if loan.livre.image %}
+                                            <img class="h-10 w-8 object-cover rounded" src="{{ loan.livre.image.url }}" alt="{{ loan.livre.titre }}">
+                                            {% else %}
+                                            <div class="h-10 w-8 bg-gray-200 rounded flex items-center justify-center">
+                                                <i class="fas fa-book text-gray-400 text-xs"></i>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="text-sm font-medium text-gray-900">
+                                            {{ loan.livre.titre }}
+                                        </div>
                                     </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-red-600 font-medium">{{ loan.date_retour_prevue|date:"M d, Y" }}</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-red-600 font-medium">{{ loan.date_retour_prevue|timeuntil:today }}</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-red-600 font-medium">€{{ loan.fee|floatformat:2 }}</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <a href="{% url 'process_return' loan.id %}" class="text-gray-600 hover:text-gray-900 mr-3">
-                                    <i class="fas fa-undo-alt"></i> Return
-                                </a>
-                                <a href="{% url 'loan_detail' loan.id %}" class="text-gray-600 hover:text-gray-900">
-                                    <i class="fas fa-info-circle"></i> Details
-                                </a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">{{ loan.date_retour_prevue|date:"M d, Y" }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">{{ loan.date_retour|date:"M d, Y" }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-red-600 font-medium">{{ loan.date_retour|timeuntil:loan.date_retour_prevue }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-red-600 font-medium">€{{ loan.fee|floatformat:2 }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <a href="{% url 'loan_detail' loan.id %}" class="text-gray-600 hover:text-gray-900">
+                                        <i class="fas fa-info-circle"></i> Details
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
             {% else %}
             <div class="text-center py-6">
                 <p class="text-gray-600">No overdue loans at this time</p>
@@ -220,10 +219,10 @@
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center">
                                     <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center mr-3">
-                                        <span class="text-gray-600 font-medium">{{ loan.utilisateur.nom|slice:":1" }}</span>
+                                        <span class="text-gray-600 font-medium">{{ loan.lecteur.nom|slice:":1" }}</span>
                                     </div>
                                     <div class="text-sm font-medium text-gray-900">
-                                        {{ loan.utilisateur.nom }}
+                                        {{ loan.lecteur.nom }}
                                     </div>
                                 </div>
                             </td>
@@ -271,9 +270,6 @@
                                 {% endif %}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <a href="{% url 'process_return' loan.id %}" class="text-gray-600 hover:text-gray-900 mr-3">
-                                    <i class="fas fa-undo-alt"></i> Return
-                                </a>
                                 <a href="{% url 'loan_detail' loan.id %}" class="text-gray-600 hover:text-gray-900">
                                     <i class="fas fa-info-circle"></i> Details
                                 </a>

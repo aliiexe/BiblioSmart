@@ -93,15 +93,14 @@
     </div>
 
     <!-- Two Column Layout -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-1 gap-6 mb-6">
         
-
         <!-- Popular Books -->
         <div class="bg-white rounded-xl shadow-sm overflow-hidden">
             <div class="p-6">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-lg font-semibold text-gray-900">Popular Books</h2>
-                    <a href="#" class="text-sm text-gray-600 hover:text-gray-900">View All</a>
+                    <a href="{ url 'books' books }" class="text-sm text-gray-600 hover:text-gray-900">View All</a>
                 </div>
 
                 {% if popular_books %}
@@ -171,10 +170,10 @@
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center">
                                     <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center mr-3">
-                                        <span class="text-gray-600 font-medium">{{ loan.utilisateur.nom|slice:":1" }}</span>
+                                        <span class="text-gray-600 font-medium">{{ loan.lecteur.nom|slice:":1" }}</span>
                                     </div>
                                     <div class="text-sm font-medium text-gray-900">
-                                        {{ loan.utilisateur.nom }}
+                                        {{ loan.lecteur.nom }}
                                     </div>
                                 </div>
                             </td>
@@ -204,10 +203,10 @@
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center">
                                     <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center mr-3">
-                                        <span class="text-gray-600 font-medium">{{ loan.utilisateur.nom|slice:":1" }}</span>
+                                        <span class="text-gray-600 font-medium">{{ loan.lecteur.nom|slice:":1" }}</span>
                                     </div>
                                     <div class="text-sm font-medium text-gray-900">
-                                        {{ loan.utilisateur.nom }}
+                                        {{ loan.lecteur.nom }}
                                     </div>
                                 </div>
                             </td>

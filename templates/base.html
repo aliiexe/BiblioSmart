@@ -59,6 +59,7 @@
             <div class="px-4 py-6">
                 <nav>
                     <ul class="space-y-2">
+                        <!-- Links for all users -->
                         <li>
                             <a href="{% url 'home' %}" class="sidebar-item flex items-center px-4 py-3 text-gray-300 rounded-lg hover:text-white">
                                 <i class="fas fa-home w-5 h-5 mr-3"></i>
@@ -71,37 +72,56 @@
                                 <span>Books</span>
                             </a>
                         </li>
-                        <!-- <li>
-                            <a href="#" class="sidebar-item flex items-center px-4 py-3 text-gray-300 rounded-lg hover:text-white">
-                                <i class="fas fa-users w-5 h-5 mr-3"></i>
-                                <span>Members</span>
+                        
+                        <!-- For any authenticated user -->
+                        {% if request.session.utilisateur_id %}
+
+                        
+                        {% if request.session.utilisateur_role == 'lecteur' %}
+                        <li>
+                            <a href="{% url 'user_fees' request.session.utilisateur_id %}" class="sidebar-item flex items-center px-4 py-3 text-gray-300 rounded-lg hover:text-white">
+                                <i class="fas fa-money-bill-wave w-5 h-5 mr-3"></i>
+                                <span>My Fees</span>
+                                {% if request.session.total_fees > 0 %}
+                                <span class="ml-auto px-2 py-1 text-xs rounded-full bg-red-600 text-white">€{{ request.session.total_fees|floatformat:2 }}</span>
+                                {% endif %}
                             </a>
-                        </li> -->
+                        </li>
+                        {% endif %}
+
+                        {% if request.session.utilisateur_role == 'lecteur' %}
                         <li>
                             <a href="{% url 'user_loans' request.session.utilisateur_id %}" class="sidebar-item flex items-center px-4 py-3 text-gray-300 rounded-lg hover:text-white">
                                 <i class="fas fa-exchange-alt w-5 h-5 mr-3"></i>
-                                <span>Loans</span>
+                                <span>My Loans</span>
                             </a>
                         </li>
-                        <!-- Management Links -->
+                        {% endif %}
+                        
+                        <!-- Reader-specific links -->
+                        {% if request.session.utilisateur_role == 'lecteur' %}
+                        <li>
+                            <a href="{% url 'user_favorites' request.session.utilisateur_id %}" class="sidebar-item flex items-center px-4 py-3 text-gray-300 rounded-lg hover:text-white">
+                                <i class="fas fa-heart w-5 h-5 mr-3"></i>
+                                <span>My Favorites</span>
+                            </a>
+                        </li>
+                        {% endif %}
+                        
+                        <!-- Librarian-specific links -->
+                        {% if request.session.utilisateur_role == 'bibliothecaire' %}
                         <li>
                             <a href="{% url 'book_management' %}" class="sidebar-item flex items-center px-4 py-3 text-gray-300 rounded-lg hover:text-white">
                                 <i class="fas fa-cogs w-5 h-5 mr-3"></i>
                                 <span>Book Management</span>
                             </a>
                         </li>
-                        <li>
+                        <!-- <li>
                             <a href="{% url 'add_book' %}" class="sidebar-item flex items-center px-4 py-3 text-gray-300 rounded-lg hover:text-white">
                                 <i class="fas fa-plus w-5 h-5 mr-3"></i>
                                 <span>Add Book</span>
                             </a>
-                        </li>
-                        <li>
-                            <a href="{% url 'book_management' %}" class="sidebar-item flex items-center px-4 py-3 text-gray-300 rounded-lg hover:text-white">
-                                <i class="fas fa-cogs w-5 h-5 mr-3"></i>
-                                <span>Book Management</span>
-                            </a>
-                        </li>
+                        </li> -->
                         <li>
                             <a href="{% url 'user_management' %}" class="sidebar-item flex items-center px-4 py-3 text-gray-300 rounded-lg hover:text-white">
                                 <i class="fas fa-user-cog w-5 h-5 mr-3"></i>
@@ -109,11 +129,21 @@
                             </a>
                         </li>
                         <li>
+                            <a href="{% url 'all_loans' %}" class="sidebar-item flex items-center px-4 py-3 text-gray-300 rounded-lg hover:text-white">
+                                <i class="fas fa-list w-5 h-5 mr-3"></i>
+                                <span>All Loans</span>
+                            </a>
+                        </li>
+                        {% endif %}
+                        
+                        <!-- Dashboard for all authenticated users -->
+                        <li>
                             <a href="{% url 'dashboard' %}" class="sidebar-item flex items-center px-4 py-3 text-gray-300 rounded-lg hover:text-white">
                                 <i class="fas fa-tachometer-alt w-5 h-5 mr-3"></i>
                                 <span>Dashboard</span>
                             </a>
                         </li>
+                        {% endif %}
                     </ul>
                     
                     <div class="mt-10 pt-6 border-t border-gray-800">
@@ -148,7 +178,6 @@
                     <span>Logout</span>
                 </a>
             </div>
-            
         </div>
 
         <!-- Main Content -->
@@ -168,17 +197,133 @@
                             <i class="fas fa-search absolute left-3 top-2.5 text-gray-400"></i>
                         </div>
                         
-                        <button class="p-2 text-gray-600 rounded-full hover:bg-gray-100">
-                            <i class="fas fa-bell"></i>
-                        </button>
+                        <!-- With this notification dropdown system -->
+                        <div class="relative" id="notificationSystem">
+                            <button id="notificationButton" class="p-2 text-gray-600 rounded-full hover:bg-gray-100 relative">
+                                <i class="fas fa-bell"></i>
+                                <span id="notificationCount" class="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full {% if not notifications %}hidden{% endif %}">
+                                    {{ notifications|length|default:"0" }}
+                                </span>
+                            </button>
+                            
+                            <!-- Notification Popup -->
+                            <div id="notificationPopup" class="hidden absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200 max-h-96 overflow-y-auto">
+                                <div class="px-4 py-2 border-b border-gray-200 flex justify-between items-center">
+                                    <h3 class="font-medium text-gray-700">Notifications</h3>
+                                    <button id="markAllRead" class="text-xs text-blue-600 hover:text-blue-800">Mark all read</button>
+                                </div>
+                                
+                                <div id="notificationsList">
+                                    {% if notifications %}
+                                        {% for notification in notifications %}
+                                        <div class="notification-item px-4 py-3 {% if not notification.read %}bg-blue-50{% endif %} hover:bg-gray-100 border-b border-gray-100">
+                                            <div class="flex items-start">
+                                                <div class="flex-shrink-0 mr-3">
+                                                    {% if notification.type == 'book_available' %}
+                                                        <div class="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
+                                                            <i class="fas fa-book text-green-500"></i>
+                                                        </div>
+                                                    {% elif notification.type == 'overdue' %}
+                                                        <div class="h-8 w-8 rounded-full bg-red-100 flex items-center justify-center">
+                                                            <i class="fas fa-exclamation-triangle text-red-500"></i>
+                                                        </div>
+                                                    {% else %}
+                                                        <div class="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
+                                                            <i class="fas fa-info text-blue-500"></i>
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="flex-1 min-w-0">
+                                                    <p class="text-sm font-medium text-gray-900">
+                                                        {{ notification.message }}
+                                                    </p>
+                                                    <p class="text-xs text-gray-500 mt-1">
+                                                        {{ notification.created_at|timesince }} ago
+                                                    </p>
+                                                    {% if notification.link %}
+                                                        <a href="{{ notification.link }}" class="block text-xs text-blue-600 hover:underline mt-1">
+                                                            View details →
+                                                        </a>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <div class="px-4 py-6 text-center text-gray-500">
+                                            <div class="flex justify-center mb-3">
+                                                <i class="far fa-bell-slash text-2xl"></i>
+                                            </div>
+                                            <p>No notifications yet</p>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
                         
-                        <div class="relative">
-                            <button class="flex items-center text-sm focus:outline-none">
+                        <div class="relative" x-data="{ isOpen: false }">
+                            <button @click="isOpen = !isOpen" class="flex items-center text-sm focus:outline-none" id="userMenuButton">
                                 <div class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
                                     <i class="fas fa-user text-gray-600"></i>
                                 </div>
                             </button>
+                            
+                            <div id="userDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+                                {% if request.session.utilisateur_id %}
+                                <div class="px-4 py-3 border-b border-gray-200">
+                                    <div class="flex items-center mb-2">
+                                            <div class="h-10 w-10 flex-shrink-0 rounded-full bg-gray-200 flex items-center justify-center mr-3">
+                                                <span class="text-gray-600 font-medium">{{ request.session.utilisateur_nom|default:"U"|slice:":1" }}</span>
+                                            </div>
+                                            <div class="min-w-0 flex-1">
+                                                <p class="font-medium text-sm text-gray-900 truncate">{{ request.session.utilisateur_nom|default:"User" }}</p>
+                                                <p class="text-xs text-gray-500 truncate" title="{{ request.session.utilisateur_email|default:"" }}">
+                                                    {{ request.session.utilisateur_email|default:"" }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <span class="inline-block px-2 py-1 text-xs rounded-full {% if request.session.utilisateur_role == 'lecteur' %}bg-blue-100 text-blue-800{% else %}bg-purple-100 text-purple-800{% endif %}">
+                                            {% if request.session.utilisateur_role == 'lecteur' %}Reader{% else %}Librarian{% endif %}
+                                        </span>
+                                    </div>
+                                    <a href="{% url 'user_detail' request.session.utilisateur_id %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        <i class="fas fa-user-circle mr-2"></i> My Profile
+                                    </a>
+                                    
+                                    {% if request.session.utilisateur_role == 'lecteur' %}
+                                    <a href="{% url 'user_loans' request.session.utilisateur_id %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        <i class="fas fa-book mr-2"></i> My Loans
+                                    </a>
+                                    
+                                    <a href="{% url 'user_favorites' request.session.utilisateur_id %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        <i class="fas fa-heart mr-2"></i> My Favorites
+                                    </a>
+                                    {% endif %}
+                                    
+                                    {% if request.session.utilisateur_role == 'bibliothecaire' %}
+                                    <a href="{% url 'all_loans' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        <i class="fas fa-list mr-2"></i> Manage Loans
+                                    </a>
+                                    {% endif %}
+                                    
+                                    <div class="border-t border-gray-200 mt-1"></div>
+                                    <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+                                        <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                                    </a>
+                                {% else %}
+                                    <a href="{% url 'connexion' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        <i class="fas fa-sign-in-alt mr-2"></i> Login
+                                    </a>
+                                    <a href="{% url 'inscription' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        <i class="fas fa-user-plus mr-2"></i> Register
+                                    </a>
+                                {% endif %}
+                            </div>
                         </div>
+                        
+                        <script>
+                            
+                        </script>
                     </div>
                 </div>
             </header>
@@ -190,6 +335,20 @@
     </div>
 
     <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const userMenuButton = document.getElementById('userMenuButton');
+            const userDropdown = document.getElementById('userDropdown');
+            
+            userMenuButton.addEventListener('click', function() {
+                userDropdown.classList.toggle('hidden');
+            });
+            
+            document.addEventListener('click', function(event) {
+                if (!userMenuButton.contains(event.target) && !userDropdown.contains(event.target)) {
+                    userDropdown.classList.add('hidden');
+                }
+            });
+        });
         document.getElementById('openSidebar').addEventListener('click', function() {
             document.getElementById('sidebar').classList.remove('-translate-x-full');
         });
@@ -201,6 +360,72 @@
         if (window.innerWidth < 768) {
             document.getElementById('sidebar').classList.add('-translate-x-full');
         }
+
+                // Add inside your existing DOMContentLoaded event handler
+                document.addEventListener('DOMContentLoaded', function() {
+            // Existing code...
+            
+            // Notification popup functionality
+            const notificationButton = document.getElementById('notificationButton');
+            const notificationPopup = document.getElementById('notificationPopup');
+            const markAllRead = document.getElementById('markAllRead');
+            
+            if (notificationButton && notificationPopup) {
+                notificationButton.addEventListener('click', function() {
+                    notificationPopup.classList.toggle('hidden');
+                    userDropdown.classList.add('hidden'); // Hide user dropdown when showing notifications
+                });
+                
+                // Close popup when clicking outside
+                document.addEventListener('click', function(event) {
+                    if (!notificationButton.contains(event.target) && 
+                        !notificationPopup.contains(event.target)) {
+                        notificationPopup.classList.add('hidden');
+                    }
+                });
+                
+                if (markAllRead) {
+                    markAllRead.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        
+                        const csrftoken = getCookie('csrftoken');
+                        
+                        fetch('/notifications/mark-all-read/', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': csrftoken
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                document.querySelectorAll('.notification-item').forEach(item => {
+                                    item.classList.remove('bg-blue-50');
+                                });
+                                
+                                document.getElementById('notificationCount').classList.add('hidden');
+                            }
+                        });
+                    });
+                }
+            }
+            
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+        });
     </script>
     {% block extra_js %}{% endblock %}
 </body>

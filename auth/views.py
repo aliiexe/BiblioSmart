@@ -1,3 +1,4 @@
+from emprunt.utils import check_overdue_loans
 from django.shortcuts import render
 from django.contrib.auth.forms import UserCreationForm
 from .forms import CustomUserCreationForm
@@ -46,6 +47,7 @@ def inscription(request):
 
     return render(request, 'inscription.html')
 
+
 def connexion(request):
     if request.method == 'POST':
         email = request.POST.get('email')
@@ -55,13 +57,41 @@ def connexion(request):
             utilisateur = Utilisateur.objects.get(email=email)
             
             if utilisateur.mot_de_passe == password:
+                # Basic session setup
                 request.session['utilisateur_id'] = utilisateur.id
                 request.session['utilisateur_nom'] = utilisateur.nom
                 request.session['utilisateur_role'] = utilisateur.role
+                request.session['utilisateur_email'] = utilisateur.email
                 
-                print(f"Session utilisateur_id: {request.session['utilisateur_id']}")  # Debugging
+                # Check for overdue loans if user is a lecteur
+                if utilisateur.role == 'lecteur':
+                    # Call our comprehensive check function
+                    stats = check_overdue_loans(utilisateur.id)
+                    
+                    # Store stats in session for UI display
+                    request.session['overdue_count'] = stats['total_overdue_count']
+                    request.session['current_overdue_count'] = stats['current_overdue_count']
+                    request.session['past_overdue_count'] = stats['past_overdue_count']
+                    request.session['total_fees'] = float(stats['total_fees'])
+                    
+                    # Show message if there are overdue books
+                    if stats['current_overdue_count'] > 0:
+                        messages.warning(
+                            request, 
+                            f"Vous avez {stats['current_overdue_count']} livre(s) en retard avec des frais de {stats['current_overdue_fees']:.2f}€. "
+                            f"Veuillez les retourner dès que possible."
+                        )
+                    
+                    # If there are past overdue books with unpaid fees
+                    if stats['past_overdue_count'] > 0:
+                        messages.info(
+                            request,
+                            f"Vous avez {stats['past_overdue_count']} livre(s) retournés en retard avec des frais de {stats['past_overdue_fees']:.2f}€. "
+                            f"Veuillez payer ces frais à votre prochaine visite."
+                        )
+                
                 messages.success(request, f"Bienvenue, {utilisateur.nom}!")
-                return redirect('/livres')
+                return redirect('dashboard')
             else:
                 messages.error(request, 'Mot de passe incorrect.')
         except Utilisateur.DoesNotExist:
