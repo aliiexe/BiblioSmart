@@ -71,14 +71,14 @@
                                 <span>Books</span>
                             </a>
                         </li>
-                        <li>
+                        <!-- <li>
                             <a href="#" class="sidebar-item flex items-center px-4 py-3 text-gray-300 rounded-lg hover:text-white">
                                 <i class="fas fa-users w-5 h-5 mr-3"></i>
                                 <span>Members</span>
                             </a>
-                        </li>
+                        </li> -->
                         <li>
-                            <a href="#" class="sidebar-item flex items-center px-4 py-3 text-gray-300 rounded-lg hover:text-white">
+                            <a href="{% url 'user_loans' request.session.utilisateur_id %}" class="sidebar-item flex items-center px-4 py-3 text-gray-300 rounded-lg hover:text-white">
                                 <i class="fas fa-exchange-alt w-5 h-5 mr-3"></i>
                                 <span>Loans</span>
                             </a>
@@ -106,6 +106,12 @@
                             <a href="{% url 'user_management' %}" class="sidebar-item flex items-center px-4 py-3 text-gray-300 rounded-lg hover:text-white">
                                 <i class="fas fa-user-cog w-5 h-5 mr-3"></i>
                                 <span>User Management</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'dashboard' %}" class="sidebar-item flex items-center px-4 py-3 text-gray-300 rounded-lg hover:text-white">
+                                <i class="fas fa-tachometer-alt w-5 h-5 mr-3"></i>
+                                <span>Dashboard</span>
                             </a>
                         </li>
                     </ul>
@@ -177,14 +183,13 @@
                 </div>
             </header>
             
-            <main class="p-6 md:p-10">
+            <main class="p-6 md:p-10 content-block">
                 {% block content %}{% endblock %}
             </main>
         </div>
     </div>
 
     <script>
-        // Sidebar toggle functionality
         document.getElementById('openSidebar').addEventListener('click', function() {
             document.getElementById('sidebar').classList.remove('-translate-x-full');
         });
@@ -193,7 +198,6 @@
             document.getElementById('sidebar').classList.add('-translate-x-full');
         });
         
-        // On mobile, hide sidebar by default
         if (window.innerWidth < 768) {
             document.getElementById('sidebar').classList.add('-translate-x-full');
         }

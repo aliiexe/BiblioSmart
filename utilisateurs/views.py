@@ -116,43 +116,43 @@ def delete_user(request, user_id):
     
     return render(request, 'user_delete.html', {'user': user})
 
-def login_view(request):
-    if request.method == 'POST':
-        form = LoginForm(request.POST)
-        if form.is_valid():
-            email = form.cleaned_data['email']
-            password = form.cleaned_data['password']
+# def login_view(request):
+#     if request.method == 'POST':
+#         form = LoginForm(request.POST)
+#         if form.is_valid():
+#             email = form.cleaned_data['email']
+#             password = form.cleaned_data['password']
             
-            try:
-                user = Utilisateur.objects.get(email=email)
-                if check_password(password, user.mot_de_passe):
-                    # Store user ID in session
-                    request.session['user_id'] = user.id
-                    request.session['user_role'] = user.role
+#             try:
+#                 user = Utilisateur.objects.get(email=email)
+#                 if check_password(password, user.mot_de_passe):
+#                     # Store user ID in session
+#                     request.session['user_id'] = user.id
+#                     request.session['user_role'] = user.role
                     
-                    # Update last login time
-                    user.derniere_connexion = timezone.now()
-                    user.save()
+#                     # Update last login time
+#                     user.derniere_connexion = timezone.now()
+#                     user.save()
                     
-                    messages.success(request, f'Welcome back, {user.nom}!')
-                    return redirect('home')
-                else:
-                    messages.error(request, 'Invalid password.')
-            except Utilisateur.DoesNotExist:
-                messages.error(request, 'No user found with this email.')
-    else:
-        form = LoginForm()
+#                     messages.success(request, f'Welcome back, {user.nom}!')
+#                     return redirect('home')
+#                 else:
+#                     messages.error(request, 'Invalid password.')
+#             except Utilisateur.DoesNotExist:
+#                 messages.error(request, 'No user found with this email.')
+#     else:
+#         form = LoginForm()
     
-    return render(request, 'login.html', {'form': form})
+#     return render(request, 'login.html', {'form': form})
 
-def logout_view(request):
-    if 'user_id' in request.session:
-        del request.session['user_id']
-    if 'user_role' in request.session:
-        del request.session['user_role']
+# def logout_view(request):
+#     if 'user_id' in request.session:
+#         del request.session['user_id']
+#     if 'user_role' in request.session:
+#         del request.session['user_role']
     
-    messages.success(request, 'You have been logged out successfully.')
-    return redirect('login')
+#     messages.success(request, 'You have been logged out successfully.')
+#     return redirect('login')
 
 def register_view(request):
     if request.method == 'POST':
@@ -171,3 +171,67 @@ def register_view(request):
         form = LecteurForm()  # Default to reader registration
     
     return render(request, 'register.html', {'form': form})
+
+
+def user_favorites(request, user_id):
+    from biblio_smart.models import Utilisateur, Livre
+    
+    # Check if the user is logged in and matches the requested user_id
+    current_user_id = request.session.get('utilisateur_id')
+    if not current_user_id or int(current_user_id) != int(user_id):
+        messages.error(request, 'You can only view your own favorites')
+        return redirect('login')
+    
+    # Process removing a favorite if that was requested
+    if request.method == 'POST' and 'remove_favorite' in request.POST:
+        book_id = request.POST.get('remove_favorite')
+        try:
+            user = Utilisateur.objects.get(id=user_id)
+            book = Livre.objects.get(id=book_id)
+            user.favorites.remove(book)
+            messages.success(request, f'"{book.titre}" has been removed from your favorites')
+        except Exception as e:
+            messages.error(request, f'Error removing book from favorites: {str(e)}')
+    
+    # Get the user and their favorite books
+    try:
+        user = get_object_or_404(Utilisateur, id=user_id)
+        favorite_books = user.favorites.all()
+        
+        context = {
+            'user': user,
+            'favorite_books': favorite_books,
+        }
+        
+        return render(request, 'user_favorites.html', context)
+    except Exception as e:
+        messages.error(request, f'Error loading favorites: {str(e)}')
+        return redirect('dashboard')
+
+def book_detail(request, book_id):
+    book = get_object_or_404(Livre, id=book_id)
+    similar_books = Livre.objects.filter(categorie=book.categorie).exclude(id=book.id)[:5]
+
+    utilisateur_id = request.session.get('utilisateur_id')
+    utilisateur = Utilisateur.objects.get(id=utilisateur_id)
+
+    # Let's be very explicit with the query to find the emprunt record
+    emprunt = None
+    try:
+        # Use the exact values we know exist in the database
+        emprunt = Emprunt.objects.filter(
+            livre_id=book.id,
+            lecteur_id=utilisateur.id,
+            returned=0  # Explicitly use 0 instead of False
+        ).first()
+        print(f"Emprunt query result: {emprunt}")
+    except Exception as e:
+        print(f"Error fetching emprunt: {e}")
+
+    return render(request, 'book_detail.html', {
+        'book': book,
+        'similar_books': similar_books,
+        'utilisateur': utilisateur,
+        'emprunt': emprunt,
+        'active_emprunt': emprunt is not None,
+    })

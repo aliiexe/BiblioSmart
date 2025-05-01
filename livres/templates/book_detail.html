@@ -79,7 +79,7 @@
                 <i class="fas fa-book-reader mr-2"></i> Borrow
                 </button>
 
-                                <!-- Return Button -->
+                <!-- Return Button -->
                 {% if not book.disponibilite and emprunt and emprunt.lecteur.id == utilisateur.id %}
                 <form method="post" action="{% url 'return_book' book.id %}">
                 {% csrf_token %}
@@ -91,14 +91,16 @@
                 {% endif %}
             
                 {% if not book.disponibilite %}
-                <!-- Join Waitlist Button -->
-                <form method="post" action="{% url 'join_waitlist' book.id %}">
-                    {% csrf_token %}
-                    <button type="submit" 
-                            class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-lg shadow transition duration-300">
-                        <i class="fas fa-clock mr-2"></i> Join the waiting list
-                    </button>
-                </form>
+                    {% if not emprunt or emprunt.lecteur.id != request.session.utilisateur_id %}
+                    <!-- Join Waitlist Button -->
+                    <form method="post" action="{% url 'join_waitlist' book.id %}">
+                        {% csrf_token %}
+                        <button type="submit" 
+                                class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-lg shadow transition duration-300">
+                            <i class="fas fa-clock mr-2"></i> Join the waiting list
+                        </button>
+                    </form>
+                    {% endif %}
                 {% endif %}
             
                 <form method="post" action="{% url 'toggle_favorite' book.id %}">

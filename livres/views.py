@@ -160,7 +160,8 @@ def borrow_book(request, book_id):
             messages.error(request, "Votre profil de lecteur n'existe pas.")
             return redirect('book_detail', book_id=book_id)
         
-        start_date = now().date()
+        # Use timezone.now() instead of now()
+        start_date = timezone.now().date()
 
         end_date = request.POST.get('end_date')
         
@@ -178,11 +179,14 @@ def borrow_book(request, book_id):
             messages.error(request, "La date de fin doit être après la date de début.")
             return redirect('book_detail', book_id=book_id)
         
+        # Create the loan with the correct timezone-aware date
         Emprunt.objects.create(
             livre=book,
             lecteur=lecteur,
             date_emprunt=start_date,
-            date_retour=end_date
+            date_retour_prevue=end_date,
+            date_retour=None,
+            returned=False
         )
         
         book.disponibilite = False

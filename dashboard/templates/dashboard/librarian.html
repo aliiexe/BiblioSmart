@@ -1,0 +1,277 @@
+{% extends 'base.html' %}
+
+{% block title %}Librarian Dashboard{% endblock %}
+{% block header_title %}Librarian Dashboard{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <!-- Welcome Header -->
+    <div class="bg-white rounded-2xl shadow-sm overflow-hidden mb-6">
+        <div class="p-8">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">Welcome, {{ user.nom }}!</h1>
+                    <p class="text-gray-600">Library Management Dashboard</p>
+                </div>
+                <div class="flex flex-wrap gap-3">
+                    <a href="{% url 'user_detail' user.id %}" class="flex items-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition duration-300">
+                        <i class="fas fa-user mr-2"></i> My Profile
+                    </a>
+                    <a href="#" class="flex items-center px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition duration-300">
+                        <i class="fas fa-chart-bar mr-2"></i> Reports
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Overview -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+        <!-- Total Books -->
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-semibold text-gray-900">Total Books</h2>
+                    <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                        <i class="fas fa-book text-blue-600"></i>
+                    </div>
+                </div>
+                <div class="text-3xl font-bold text-gray-900 mb-1">{{ total_books }}</div>
+                <p class="text-sm text-gray-600">
+                    {{ available_books }} available, {{ borrowed_books }} borrowed
+                </p>
+            </div>
+        </div>
+
+        <!-- Total Users -->
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-semibold text-gray-900">Total Users</h2>
+                    <div class="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
+                        <i class="fas fa-users text-green-600"></i>
+                    </div>
+                </div>
+                <div class="text-3xl font-bold text-gray-900 mb-1">{{ total_users }}</div>
+                <p class="text-sm text-gray-600">
+                    {{ total_readers }} readers, {{ total_librarians }} librarians
+                </p>
+            </div>
+        </div>
+
+        <!-- Active Loans -->
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-semibold text-gray-900">Active Loans</h2>
+                    <div class="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
+                        <i class="fas fa-clipboard-list text-purple-600"></i>
+                    </div>
+                </div>
+                <div class="text-3xl font-bold text-gray-900 mb-1">{{ active_loans }}</div>
+                <p class="text-sm text-gray-600">
+                    {{ overdue_loans }} overdue
+                </p>
+            </div>
+        </div>
+
+        <!-- New Users -->
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-semibold text-gray-900">New Users</h2>
+                    <div class="h-10 w-10 rounded-full bg-yellow-100 flex items-center justify-center">
+                        <i class="fas fa-user-plus text-yellow-600"></i>
+                    </div>
+                </div>
+                <div class="text-3xl font-bold text-gray-900 mb-1">{{ new_users }}</div>
+                <p class="text-sm text-gray-600">
+                    This month
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Two Column Layout -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        
+
+        <!-- Popular Books -->
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-semibold text-gray-900">Popular Books</h2>
+                    <a href="#" class="text-sm text-gray-600 hover:text-gray-900">View All</a>
+                </div>
+
+                {% if popular_books %}
+                <div class="space-y-4">
+                    {% for book in popular_books %}
+                    <div class="flex items-start">
+                        <div class="h-10 w-8 flex-shrink-0 mr-4">
+                            {% if book.image %}
+                            <img class="h-10 w-8 object-cover rounded" src="{{ book.image.url }}" alt="{{ book.titre }}">
+                            {% else %}
+                            <div class="h-10 w-8 bg-gray-200 rounded flex items-center justify-center">
+                                <i class="fas fa-book text-gray-400 text-xs"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="flex-grow">
+                            <h3 class="text-sm font-medium text-gray-900">{{ book.titre }}</h3>
+                            <p class="text-xs text-gray-500">{{ book.auteur }}</p>
+                        </div>
+                        <div class="text-sm font-medium text-gray-900">
+                            {{ book.loan_count }} loans
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-6">
+                    <p class="text-gray-600">No loan data available</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-6">
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-gray-900">Recent Activity</h2>
+                <a href="#" class="text-sm text-gray-600 hover:text-gray-900">View All</a>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                User
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Book
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Action
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Date
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Details
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for loan in recent_loans %}
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center mr-3">
+                                        <span class="text-gray-600 font-medium">{{ loan.utilisateur.nom|slice:":1" }}</span>
+                                    </div>
+                                    <div class="text-sm font-medium text-gray-900">
+                                        {{ loan.utilisateur.nom }}
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">{{ loan.livre.titre }}</div>
+                                <div class="text-xs text-gray-500">{{ loan.livre.auteur }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                    Borrowed
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">{{ loan.date_emprunt|date:"M d, Y" }}</div>
+                                <div class="text-xs text-gray-500">{{ loan.date_emprunt|time }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <a href="#" class="text-gray-600 hover:text-gray-900">
+                                    <i class="fas fa-info-circle"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        
+                        {% for loan in recent_returns %}
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center mr-3">
+                                        <span class="text-gray-600 font-medium">{{ loan.utilisateur.nom|slice:":1" }}</span>
+                                    </div>
+                                    <div class="text-sm font-medium text-gray-900">
+                                        {{ loan.utilisateur.nom }}
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">{{ loan.livre.titre }}</div>
+                                <div class="text-xs text-gray-500">{{ loan.livre.auteur }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                    Returned
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">{{ loan.date_retour_reelle|date:"M d, Y" }}</div>
+                                <div class="text-xs text-gray-500">{{ loan.date_retour_reelle|time }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <a href="#" class="text-gray-600 hover:text-gray-900">
+                                    <i class="fas fa-info-circle"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+        <div class="p-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <a href="{% url 'add_user' %}" class="flex flex-col items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition duration-300">
+                    <div class="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center mb-2">
+                        <i class="fas fa-user-plus text-blue-600"></i>
+                    </div>
+                    <span class="text-sm font-medium text-gray-900">Add User</span>
+                </a>
+                
+                <a href="#" class="flex flex-col items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition duration-300">
+                    <div class="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center mb-2">
+                        <i class="fas fa-book-medical text-green-600"></i>
+                    </div>
+                    <span class="text-sm font-medium text-gray-900">Add Book</span>
+                </a>
+                
+                <a href="#" class="flex flex-col items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition duration-300">
+                    <div class="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center mb-2">
+                        <i class="fas fa-exchange-alt text-purple-600"></i>
+                    </div>
+                    <span class="text-sm font-medium text-gray-900">Process Loan</span>
+                </a>
+                
+                <a href="#" class="flex flex-col items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition duration-300">
+                    <div class="h-12 w-12 rounded-full bg-yellow-100 flex items-center justify-center mb-2">
+                        <i class="fas fa-chart-bar text-yellow-600"></i>
+                    </div>
+                    <span class="text-sm font-medium text-gray-900">Generate Report</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

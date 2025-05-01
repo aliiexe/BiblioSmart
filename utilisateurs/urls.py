@@ -9,4 +9,5 @@ urlpatterns = [
     
     path('users/lecteur/<int:user_id>/edit/', views.edit_lecteur, name='edit_lecteur'),
     path('users/bibliothecaire/<int:user_id>/edit/', views.edit_bibliothecaire, name='edit_bibliothecaire'),
+    path('users/favorites/<int:user_id>/', views.user_favorites, name='user_favorites'),
 ]

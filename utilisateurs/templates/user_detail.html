@@ -131,10 +131,10 @@
                 <div class="flex flex-wrap gap-3">
                     {% if user.role == 'lecteur' %}
                     <!-- Reader actions -->
-                    <a href="#" class="px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition duration-300">
+                    <a href="{% url 'user_loans' user.id %}" class="px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition duration-300">
                         <i class="fas fa-book mr-2"></i> View Borrowed Books
                     </a>
-                    <a href="#" class="px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition duration-300">
+                    <a href="{% url 'user_favorites' request.session.utilisateur_id %}" class="px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition duration-300">
                         <i class="fas fa-heart mr-2"></i> Manage Favorites
                     </a>
                     {% else %}

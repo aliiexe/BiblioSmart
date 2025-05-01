@@ -13,6 +13,7 @@ urlpatterns = [
     # path('auth/', include('auth.urls')),
     path('emprunt/', include('emprunt.urls')),
     path('utilisateurs/', include('utilisateurs.urls')),
+     path('dashboard/', include('dashboard.urls')),
 ]
 
 if settings.DEBUG:

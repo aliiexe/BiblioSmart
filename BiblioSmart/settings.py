@@ -58,12 +58,13 @@ ROOT_URLCONF = 'BiblioSmart.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-                'DIRS': [
+        'DIRS': [
             BASE_DIR / 'templates', 
             os.path.join(BASE_DIR, 'livres', 'templates'),      
             os.path.join(BASE_DIR, 'auth', 'templates'),
             os.path.join(BASE_DIR, 'emprunt', 'templates'),
             os.path.join(BASE_DIR, 'utilisateurs', 'templates'),
+            os.path.join(BASE_DIR, 'dashboard', 'templates'),
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -118,7 +119,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Africa/Casablanca'
 
 USE_I18N = True
 

@@ -1,0 +1,291 @@
+{% extends 'base.html' %}
+
+{% block title %}Reader Dashboard{% endblock %}
+{% block header_title %}Reader Dashboard{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <!-- Welcome Header -->
+    <div class="bg-white rounded-2xl shadow-sm overflow-hidden mb-6">
+        <div class="p-8">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">Welcome, {{ user.nom }}!</h1>
+                    <p class="text-gray-600">Here's an overview of your library activity</p>
+                </div>
+                <div class="flex flex-wrap gap-3">
+                    <a href="{% url 'user_detail' user.id %}" class="flex items-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition duration-300">
+                        <i class="fas fa-user mr-2"></i> My Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Overview -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <!-- Books Currently Borrowed -->
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-semibold text-gray-900">Currently Borrowed</h2>
+                    <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                        <i class="fas fa-book text-blue-600"></i>
+                    </div>
+                </div>
+                <div class="text-3xl font-bold text-gray-900 mb-1">{{ current_loans.count }}</div>
+                <p class="text-sm text-gray-600">
+                    {% if overdue_loans.count > 0 %}
+                    <span class="text-red-600 font-medium">{{ overdue_loans.count }} overdue</span>
+                    {% else %}
+                    All books on time
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+
+        <!-- Books Read -->
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-semibold text-gray-900">Books Read</h2>
+                    <div class="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
+                        <i class="fas fa-check-circle text-green-600"></i>
+                    </div>
+                </div>
+                <div class="text-3xl font-bold text-gray-900 mb-1">{{ total_books_read }}</div>
+                <p class="text-sm text-gray-600">{{ books_this_month }} this month</p>
+            </div>
+        </div>
+
+        <!-- Favorite Books -->
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-semibold text-gray-900">Favorite Books</h2>
+                    <div class="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
+                        <i class="fas fa-heart text-red-600"></i>
+                    </div>
+                </div>
+                <div class="text-3xl font-bold text-gray-900 mb-1">{{ favorite_books.count }}</div>
+                <p class="text-sm text-gray-600">Books in your favorites</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Current Loans -->
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-6">
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-gray-900">Current Loans</h2>
+                <a href="{% url 'user_loans' request.session.utilisateur_id class="text-sm text-gray-600 hover:text-gray-900">View All</a>
+            </div>
+
+            {% if current_loans %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Book
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Borrowed Date
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Due Date
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Status
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Actions
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for loan in current_loans %}
+                        <tr class="{% if loan.date_retour_prevue < today %}bg-red-50{% endif %}">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="h-10 w-8 flex-shrink-0 mr-4">
+                                        {% if loan.livre.image %}
+                                        <img class="h-10 w-8 object-cover rounded" src="{{ loan.livre.image.url }}" alt="{{ loan.livre.titre }}">
+                                        {% else %}
+                                        <div class="h-10 w-8 bg-gray-200 rounded flex items-center justify-center">
+                                            <i class="fas fa-book text-gray-400 text-xs"></i>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="text-sm font-medium text-gray-900">
+                                        <a href="#" class="hover:text-gray-600">{{ loan.livre.titre }}</a>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">{{ loan.date_emprunt|date:"M d, Y" }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm {% if loan.date_retour_prevue < today %}text-red-600 font-medium{% else %}text-gray-900{% endif %}">
+                                    {{ loan.date_retour_prevue|date:"M d, Y" }}
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% if loan.date_retour_prevue < today %}
+                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                    Overdue
+                                </span>
+                                {% elif loan.date_retour_prevue <= today|add:"3 days" %}
+                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                    Due Soon
+                                </span>
+                                {% else %}
+                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                    On Time
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <a href="#" class="text-gray-600 hover:text-gray-900 mr-3">
+                                    <i class="fas fa-redo"></i> Renew
+                                </a>
+                                <a href="{% url 'loan_detail' loan.id %}" class="text-gray-600 hover:text-gray-900">
+                                    <i class="fas fa-info-circle"></i> Details
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-8">
+                <div class="h-16 w-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-book text-gray-400 text-2xl"></i>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mb-1">No books currently borrowed</h3>
+                <p class="text-gray-600 mb-4">Visit the library catalog to find books to borrow</p>
+                <a href="{% url 'books' %}" class="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition duration-300">
+                    Browse Catalog
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Two Column Layout -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <!-- Reading History -->
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-semibold text-gray-900">Reading History</h2>
+                    <a href="{% url 'user_loans' request.session.utilisateur_id %}" class="text-sm text-gray-600 hover:text-gray-900">View All</a>
+                </div>
+
+                {% if reading_history %}
+                <div class="space-y-4">
+                    {% for loan in reading_history %}
+                    <div class="flex items-start">
+                        <div class="h-10 w-8 flex-shrink-0 mr-4">
+                            {% if loan.livre.image %}
+                            <img class="h-10 w-8 object-cover rounded" src="{{ loan.livre.image.url }}" alt="{{ loan.livre.titre }}">
+                            {% else %}
+                            <div class="h-10 w-8 bg-gray-200 rounded flex items-center justify-center">
+                                <i class="fas fa-book text-gray-400 text-xs"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-medium text-gray-900">{{ loan.livre.titre }}</h3>
+                            <p class="text-xs text-gray-500">Returned on {{ loan.date_retour_prevue|date:"M d, Y" }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-6">
+                    <p class="text-gray-600">No reading history yet</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Book Recommendations -->
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-semibold text-gray-900">Recommended for You</h2>
+                    <a href="{% url 'books' %}" class="text-sm text-gray-600 hover:text-gray-900">More</a>
+                </div>
+
+                {% if recommended_books %}
+                <div class="grid grid-cols-2 gap-4">
+                    {% for book in recommended_books %}
+                    <div class="flex items-start">
+                        <div class="h-16 w-12 flex-shrink-0 mr-4">
+                            {% if book.image %}
+                            <img class="h-16 w-12 object-cover rounded" src="{{ book.image.url }}" alt="{{ book.titre }}">
+                            {% else %}
+                            <div class="h-16 w-12 bg-gray-200 rounded flex items-center justify-center">
+                                <i class="fas fa-book text-gray-400 text-sm"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-medium text-gray-900">{{ book.titre }}</h3>
+                            <p class="text-xs text-gray-500">{{ book.auteur }}</p>
+                            <a href="{% url 'book_detail' book.id %}" class="text-xs text-blue-600 hover:text-blue-800 mt-1 inline-block">
+                                View Details
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-6">
+                    <p class="text-gray-600">No recommendations available</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+        <div class="p-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <a href="{% url 'books' %}" class="flex flex-col items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition duration-300">
+                    <div class="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center mb-2">
+                        <i class="fas fa-search text-blue-600"></i>
+                    </div>
+                    <span class="text-sm font-medium text-gray-900">Search Books</span>
+                </a>
+                
+                <a href="{% url 'user_favorites' request.session.utilisateur_id %}" class="flex flex-col items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition duration-300">
+                    <div class="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center mb-2">
+                        <i class="fas fa-heart text-green-600"></i>
+                    </div>
+                    <span class="text-sm font-medium text-gray-900">My Favorites</span>
+                </a>
+                
+                <a href="{% url 'user_loans' user.id %}" class="flex flex-col items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition duration-300">
+                    <div class="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center mb-2">
+                        <i class="fas fa-book-reader text-blue-600"></i>
+                    </div>
+                    <span class="text-sm font-medium text-gray-900">My Loans</span>
+                </a>
+                
+                <!-- <a href="#" class="flex flex-col items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition duration-300">
+                    <div class="h-12 w-12 rounded-full bg-yellow-100 flex items-center justify-center mb-2">
+                        <i class="fas fa-cog text-yellow-600"></i>
+                    </div>
+                    <span class="text-sm font-medium text-gray-900">Settings</span>
+                </a> -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

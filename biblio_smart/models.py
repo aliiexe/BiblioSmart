@@ -83,6 +83,7 @@ class Bibliothecaire(Utilisateur):
 class Emprunt(models.Model):
     date_emprunt = models.DateField()
     date_retour = models.DateField(null=True, blank=True)
+    date_retour_prevue = models.DateField(null=True, blank=True)
     livre = models.ForeignKey(Livre, on_delete=models.CASCADE)
     lecteur = models.ForeignKey(Lecteur, on_delete=models.CASCADE)
     returned = models.BooleanField(default=False)
