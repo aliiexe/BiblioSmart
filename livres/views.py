@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from biblio_smart.models import Livre
-from biblio_smart.models import Emprunt, Lecteur, Utilisateur, Notification
+from biblio_smart.models import Emprunt, Lecteur, Utilisateur, Notification, BookComment, BookRating
 from django.shortcuts import get_object_or_404, redirect
 from django.db import models
 from .forms import BookForm
@@ -147,13 +147,26 @@ def book_detail(request, book_id):
         except Exception as e:
             print(f"Error fetching emprunt: {e}")
 
+    # Get all comments with their associated ratings in one go
+    comments = book.comments.all().select_related('lecteur')
+    comment_data = []
+    
+    for comment in comments:
+        # Get the rating for this comment's author on this book
+        rating = BookRating.objects.filter(lecteur=comment.lecteur, livre=book).first()
+        comment_data.append({
+            'comment': comment,
+            'rating': rating
+        })
+    
     return render(request, 'book_detail.html', {
         'book': book,
         'similar_books': similar_books,
         'utilisateur': utilisateur,
         'emprunt': emprunt,
         'active_emprunt': emprunt is not None,
-        'is_in_waitlist': is_in_waitlist,  # Add this to the context
+        'is_in_waitlist': is_in_waitlist,
+        'comment_data': comment_data,  # Add this to the context
     })
 
 # @login_required
@@ -409,9 +422,7 @@ def return_book(request, book_id):
         return redirect('connexion')
 
     utilisateur = get_object_or_404(Utilisateur, id=utilisateur_id)
-
-    print(f"User: {utilisateur.nom}, Book: {book.titre}")
-
+    
     # Find the latest active loan for this book and user
     emprunt = Emprunt.objects.filter(
         livre=book, 
@@ -420,8 +431,6 @@ def return_book(request, book_id):
     ).order_by('-id').first()
 
     if emprunt:
-        print(f"Emprunt found: ID={emprunt.id}, Start Date={emprunt.date_emprunt}, Due Date={emprunt.date_retour_prevue}")
-
         # Current date for return
         today = timezone.now().date()
         emprunt.date_retour = today
@@ -492,6 +501,12 @@ def return_book(request, book_id):
                 print(f"Notified next reader {next_reader.nom} about book availability")
             except Exception as e:
                 print(f"Failed to notify next reader: {e}")
+        
+        # Save the emprunt ID in session for the review process
+        request.session['pending_review_emprunt_id'] = emprunt.id
+        
+        # Redirect to the review page instead of book detail
+        return redirect('review_book', book_id=book_id)
     else:
         print("No active borrowing record found for this user and book.")
         messages.error(request, "You cannot return a book that you haven't borrowed.")
@@ -503,3 +518,81 @@ def logout(request):
     request.session.flush()
     messages.success(request, 'Vous êtes déconnecté avec succès.')
     return redirect('connexion')
+
+def review_book(request, book_id):
+    book = get_object_or_404(Livre, id=book_id)
+    utilisateur_id = request.session.get('utilisateur_id')
+    emprunt_id = request.session.get('pending_review_emprunt_id')
+    
+    if not utilisateur_id:
+        messages.error(request, "You must be logged in to review a book.")
+        return redirect('connexion')
+    
+    if not emprunt_id:
+        messages.error(request, "No pending review found.")
+        return redirect('book_detail', book_id=book_id)
+    
+    utilisateur = get_object_or_404(Utilisateur, id=utilisateur_id)
+    emprunt = get_object_or_404(Emprunt, id=emprunt_id)
+    
+    # Only allow reviewing if the loan is complete and belongs to this user
+    if not emprunt.returned or emprunt.lecteur.id != utilisateur_id or emprunt.livre.id != book_id:
+        messages.error(request, "You cannot review this book at this time.")
+        return redirect('book_detail', book_id=book_id)
+    
+    return render(request, 'review_book.html', {
+        'book': book,
+        'emprunt': emprunt
+    })
+
+def submit_review(request, book_id):
+    if request.method != 'POST':
+        return redirect('book_detail', book_id=book_id)
+    
+    book = get_object_or_404(Livre, id=book_id)
+    utilisateur_id = request.session.get('utilisateur_id')
+    emprunt_id = request.session.get('pending_review_emprunt_id')
+    
+    if not utilisateur_id or not emprunt_id:
+        messages.error(request, "Invalid review submission.")
+        return redirect('book_detail', book_id=book_id)
+    
+    utilisateur = get_object_or_404(Utilisateur, id=utilisateur_id)
+    lecteur = get_object_or_404(Lecteur, id=utilisateur_id)
+    emprunt = get_object_or_404(Emprunt, id=emprunt_id)
+    
+    rating_value = request.POST.get('rating')
+    comment_text = request.POST.get('comment')
+    
+    # Save rating if provided
+    if rating_value:
+        try:
+            rating_value = int(rating_value)
+            if 1 <= rating_value <= 5:
+                # Update existing rating or create new one
+                BookRating.objects.update_or_create(
+                    livre=book,
+                    lecteur=lecteur,
+                    defaults={
+                        'value': rating_value,
+                        'emprunt': emprunt
+                    }
+                )
+        except ValueError:
+            messages.error(request, "Invalid rating value.")
+    
+    # Save comment if provided
+    if comment_text and comment_text.strip():
+        BookComment.objects.create(
+            livre=book,
+            lecteur=lecteur,
+            emprunt=emprunt,
+            text=comment_text
+        )
+    
+    # Clear the pending review from session
+    if 'pending_review_emprunt_id' in request.session:
+        del request.session['pending_review_emprunt_id']
+    
+    messages.success(request, "Thank you for your review!")
+    return redirect('book_detail', book_id=book_id)

@@ -164,8 +164,54 @@
                 {% endif %}
             </p>
         </div>
+        
+                <!-- Replace your current reviews section with this improved version -->
+        <div class="p-6 border-t border-gray-200">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-bold">Ratings & Reviews</h2>
+            </div>
+        
+            <!-- Reviews Content -->
+            {% if book.comments.exists %}
+                <div class="space-y-4">
+                    {% for item in comment_data %}
+                    <div class="bg-gray-50 p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100">
+                        <div class="flex justify-between items-start mb-2">
+                            <div class="flex items-center">
+                                <div class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center mr-3">
+                                    <span class="text-indigo-600 font-medium">{{ item.comment.lecteur.nom|slice:":1" }}</span>
+                                </div>
+                                <div>
+                                    <div class="font-medium">{{ item.comment.lecteur.nom }}</div>
+                                    <div class="text-xs text-gray-500">{{ item.comment.created_at|date:"M d, Y" }}</div>
+                                </div>
+                            </div>
+                            
+                            {% if item.rating %}
+                            <div class="text-yellow-500">
+                                {% if item.rating.value >= 1 %}★{% else %}☆{% endif %}
+                                {% if item.rating.value >= 2 %}★{% else %}☆{% endif %}
+                                {% if item.rating.value >= 3 %}★{% else %}☆{% endif %}
+                                {% if item.rating.value >= 4 %}★{% else %}☆{% endif %}
+                                {% if item.rating.value >= 5 %}★{% else %}☆{% endif %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <p class="text-gray-800 mt-2">{{ item.comment.text }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="bg-gray-50 rounded-lg p-8 text-center border border-gray-100">
+                    <div class="h-16 w-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-comment-slash text-indigo-400 text-xl"></i>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">No reviews yet</h3>
+                </div>
+            {% endif %}
+        </div>
 
-                <div class="p-6 border-t border-gray-200">
+        <div class="p-6 border-t border-gray-200">
             <h2 class="text-xl font-bold mb-6">You might also like</h2>
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                 {% for similar_book in similar_books %}
