@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete User{% endblock %}
+{% block header_title %}Delete User{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto">
+    <div class="mb-6">
+        <a href="{% url 'user_management' %}" class="text-gray-600 hover:text-gray-900 flex items-center">
+            <i class="fas fa-arrow-left mr-2"></i> Back to User Management
+        </a>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
+        <div class="p-8">
+            <div class="flex items-center justify-center w-16 h-16 rounded-full bg-red-100 mx-auto mb-6">
+                <i class="fas fa-exclamation-triangle text-red-600 text-2xl"></i>
+            </div>
+            
+            <h1 class="text-2xl font-bold text-center text-gray-900 mb-2">Delete User</h1>
+            <p class="text-center text-gray-600 mb-8">
+                Are you sure you want to delete "{{ user.nom }}"? This action cannot be undone.
+            </p>
+            
+            <div class="bg-gray-50 rounded-xl p-6 mb-8">
+                <div class="flex items-start">
+                    <div class="mr-4">
+                        <div class="h-16 w-16 rounded-full bg-gray-200 flex items-center justify-center">
+                            <span class="text-gray-600 font-medium text-xl">{{ user.nom|slice:":1" }}</span>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-gray-900">{{ user.nom }}</h3>
+                        <p class="text-gray-600 text-sm">{{ user.email }}</p>
+                        <p class="text-gray-500 text-xs mt-1">
+                            {% if user.role == 'lecteur' %}Reader{% else %}Librarian{% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <form method="post" class="flex justify-center space-x-4">
+                {% csrf_token %}
+                <a href="{% url 'user_management' %}" class="px-6 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition duration-300">
+                    Cancel
+                </a>
+                <button type="submit" class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition duration-300">
+                    Delete User
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

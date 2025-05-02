@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+
+{% block title %}Loan Details{% endblock %}
+{% block header_title %}Loan Details{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="mb-6">
+        {% if request.session.user_role == 'bibliothecaire' %}
+        <a href="{% url 'all_loans' %}" class="text-gray-600 hover:text-gray-900 flex items-center">
+            <i class="fas fa-arrow-left mr-2"></i> Back to Loan Management
+        </a>
+        {% else %}
+        <a href="{% url 'user_loans' loan.lecteur.id %}" class="text-blue-600 hover:text-blue-800">
+            <i class="fas fa-arrow-left mr-2"></i> Back to My Loans
+        </a>
+        {% endif %}
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm overflow-hidden mb-6">
+        <!-- Loan Header -->
+        <div class="bg-gray-50 p-8 border-b border-gray-200">
+            <div class="flex items-start">
+                <div class="mr-6">
+                    <div class="h-24 w-16 flex-shrink-0">
+                        {% if loan.livre.image %}
+                        <img class="h-24 w-16 object-cover rounded" src="{{ loan.livre.image.url }}" alt="{{ loan.livre.titre }}">
+                        {% else %}
+                        <div class="h-24 w-16 bg-gray-200 rounded flex items-center justify-center">
+                            <i class="fas fa-book text-gray-400"></i>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="flex-grow">
+                    <div class="flex flex-wrap justify-between items-start">
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-900 mb-1">{{ loan.livre.titre }}</h1>
+                            <p class="text-gray-600">{{ loan.livre.auteur }}</p>
+                            <div class="mt-2">
+                                {% if loan.date_retour %}
+                                <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                    Returned
+                                </span>
+                                {% elif loan.date_retour_prevue < today %}
+                                <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                    Overdue
+                                </span>
+                                {% elif loan.date_retour_prevue == today %}
+                                <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                    Due Today
+                                </span>
+                                {% else %}
+                                <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                    Active
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% if request.session.user_role == 'bibliothecaire' and not loan.date_retour %}
+                        <div class="flex space-x-2 mt-2 sm:mt-0">
+                            <a href="{% url 'process_return' loan.id %}" class="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition duration-300">
+                                <i class="fas fa-undo-alt mr-2"></i> Process Return
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loan Details -->
+        <div class="p-8">
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- Book Information -->
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Book Information</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <p class="text-sm text-gray-500">Title</p>
+                            <p class="font-medium text-gray-900">{{ loan.livre.titre }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Author</p>
+                            <p class="font-medium text-gray-900">{{ loan.livre.auteur }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Category</p>
+                            <p class="font-medium text-gray-900">{{ loan.livre.categorie }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">ISBN</p>
+                            <p class="font-medium text-gray-900">{{ loan.livre.ISBN }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Loan Information -->
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Loan Information</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <p class="text-sm text-gray-500">Borrower</p>
+                            <p class="font-medium text-gray-900">{{ loan.lecteur.nom }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Borrowed Date</p>
+                            <p class="font-medium text-gray-900">{{ loan.date_emprunt|date:"F d, Y" }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Due Date</p>
+                            <p class="font-medium {% if loan.date_retour_prevue < today and not loan.date_retour %}text-red-600{% else %}text-gray-900{% endif %}">
+                                {{ loan.date_retour_prevue|date:"F d, Y" }}
+                            </p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Return Date</p>
+                            {% if loan.date_retour %}
+                            <p class="font-medium text-gray-900">{{ loan.date_retour|date:"F d, Y" }}</p>
+                            {% else %}
+                            <p class="text-gray-500">Not returned yet</p>
+                            {% endif %}
+                        </div>
+                        
+                        {% if loan.fee > 0 %}
+                        <div class="p-4 bg-red-50 rounded-lg">
+                            <p class="text-sm text-gray-500">Overdue Fee</p>
+                            <p class="font-medium text-red-600">€{{ loan.fee|floatformat:2 }}</p>
+                            <p class="text-xs text-gray-500 mt-1">
+                                {{ loan.date_retour_prevue|timeuntil:today }} overdue
+                            </p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Notes Section -->
+            <div class="mt-8 pt-6 border-t border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Notes</h2>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <p class="text-gray-600 italic">No notes for this loan.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

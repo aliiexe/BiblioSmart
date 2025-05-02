@@ -58,10 +58,13 @@ ROOT_URLCONF = 'BiblioSmart.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-                'DIRS': [
+        'DIRS': [
             BASE_DIR / 'templates', 
             os.path.join(BASE_DIR, 'livres', 'templates'),      
             os.path.join(BASE_DIR, 'auth', 'templates'),
+            os.path.join(BASE_DIR, 'emprunt', 'templates'),
+            os.path.join(BASE_DIR, 'utilisateurs', 'templates'),
+            os.path.join(BASE_DIR, 'dashboard', 'templates'),
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -70,6 +73,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'livres.context_processors.categories_processor',
+                'notifications.context_processors.notification_processor',
             ],
         },
     },
@@ -91,6 +95,21 @@ DATABASES = {
         'PORT': '3306',   
     }
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'biblio_smart_db',
+#         'USER': '2hadRfj9ujbyhJw.root',
+#         'PASSWORD': 'sGryvKTjGw8EHkvr',
+#         'HOST': 'gateway01eu-central-1.prod.aws.tidbcloud.com',
+#         'PORT': '4000',
+#         'OPTIONS': {
+#             'ssl_mode': 'REQUIRED',
+#             'charset': 'utf8mb4',
+#         }
+#     }
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -116,7 +135,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Africa/Casablanca'
 
 USE_I18N = True
 

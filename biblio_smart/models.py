@@ -4,8 +4,9 @@ class Utilisateur(models.Model):
     nom = models.CharField(max_length=255)
     email = models.EmailField(unique=True, max_length=191)
     mot_de_passe = models.CharField(max_length=255)
+    date_inscription = models.DateTimeField(auto_now_add=True)
     role = models.CharField(max_length=50, choices=[('lecteur', 'Lecteur'), ('bibliothecaire', 'Bibliothecaire')])
-
+    favorites = models.ManyToManyField('Livre', blank=True, related_name='favorited_by')
     
     def s_inscrire(self):
         pass
@@ -82,9 +83,11 @@ class Bibliothecaire(Utilisateur):
 
 class Emprunt(models.Model):
     date_emprunt = models.DateField()
-    date_retour = models.DateField()
+    date_retour = models.DateField(null=True, blank=True)
+    date_retour_prevue = models.DateField(null=True, blank=True)
     livre = models.ForeignKey(Livre, on_delete=models.CASCADE)
     lecteur = models.ForeignKey(Lecteur, on_delete=models.CASCADE)
+    returned = models.BooleanField(default=False)
 
     def enregistrer_emprunt(self):
         pass
@@ -126,3 +129,20 @@ class Evenement(models.Model):
 
     def annuler_evenement(self):
         pass
+
+class Notification(models.Model):
+    TYPE_CHOICES = (
+        ('book_available', 'Book Available'),
+        ('overdue', 'Overdue Book'),
+        ('system', 'System Notification'),
+    )
+    
+    user = models.ForeignKey(Utilisateur, on_delete=models.CASCADE, related_name='notifications')
+    message = models.CharField(max_length=255)
+    type = models.CharField(max_length=20, choices=TYPE_CHOICES)
+    link = models.CharField(max_length=255, blank=True, null=True)
+    read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-created_at']
