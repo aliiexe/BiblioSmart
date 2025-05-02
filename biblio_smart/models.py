@@ -30,6 +30,12 @@ class Livre(models.Model):
 
     def mettre_a_jour_disponibilite(self):
         pass
+    
+    def average_rating(self):
+        """Returns the book's average rating as a float."""
+        from django.db.models import Avg
+        result = self.ratings.aggregate(Avg('value'))
+        return result['value__avg'] or 0
 
 
 class Lecteur(Utilisateur):
@@ -146,3 +152,31 @@ class Notification(models.Model):
     
     class Meta:
         ordering = ['-created_at']
+
+class BookComment(models.Model):
+    livre = models.ForeignKey(Livre, on_delete=models.CASCADE, related_name='comments')
+    lecteur = models.ForeignKey(Lecteur, on_delete=models.CASCADE)
+    emprunt = models.ForeignKey(Emprunt, on_delete=models.SET_NULL, null=True, blank=True)
+    text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        
+    def __str__(self):
+        return f"Comment by {self.lecteur.nom} on {self.livre.titre}"
+
+
+class BookRating(models.Model):
+    livre = models.ForeignKey(Livre, on_delete=models.CASCADE, related_name='ratings')
+    lecteur = models.ForeignKey(Lecteur, on_delete=models.CASCADE)
+    emprunt = models.ForeignKey(Emprunt, on_delete=models.SET_NULL, null=True, blank=True)
+    value = models.IntegerField(choices=[(1, '1'), (2, '2'), (3, '3'), (4, '4'), (5, '5')])
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        # Ensure a user can only rate a book once
+        unique_together = ('livre', 'lecteur')
+    
+    def __str__(self):
+        return f"{self.value} stars for {self.livre.titre} by {self.lecteur.nom}"
