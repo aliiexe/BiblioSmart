@@ -165,13 +165,11 @@
             </p>
         </div>
         
-                <!-- Replace your current reviews section with this improved version -->
         <div class="p-6 border-t border-gray-200">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-xl font-bold">Ratings & Reviews</h2>
             </div>
         
-            <!-- Reviews Content -->
             {% if book.comments.exists %}
                 <div class="space-y-4">
                     {% for item in comment_data %}
