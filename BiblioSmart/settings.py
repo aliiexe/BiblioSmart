@@ -92,28 +92,38 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'biblio_smart_db', 
-        'USER': 'root',
-        'PASSWORD':'',
+        'USER': 'root', 
+        'PASSWORD':'Ali10062005bourak@',
         'HOST': 'localhost',  
-        'PORT': '3306',
-       
+        'PORT': '3306',   
     }
 }
 
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'biblio_smart_db',
-#         'USER': '2hadRfj9ujbyhJw.root',
-#         'PASSWORD': 'sGryvKTjGw8EHkvr',
-#         'HOST': 'gateway01eu-central-1.prod.aws.tidbcloud.com',
-#         'PORT': '4000',
-#         'OPTIONS': {
-#             'ssl_mode': 'REQUIRED',
-#             'charset': 'utf8mb4',
-#         }
+#         'NAME': 'biblio_smart_db', 
+#         'USER': 'root', 
+#         'PASSWORD':'Ali10062005bourak@',
+#         'HOST': 'localhost',  
+#         'PORT': '3306',   
 #     }
 # }
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'biblio_smart_db',
+        'USER': '2hadRfj9ujbyhJw.root',
+        'PASSWORD': 'sGryvKTjGw8EHkvr',
+        'HOST': 'gateway01.eu-central-1.prod.aws.tidbcloud.com',
+        'PORT': '4000',
+        'OPTIONS': {
+            'ssl_mode': 'REQUIRED',
+            'charset': 'utf8mb4',
+        }
+    }
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
