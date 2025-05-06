@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accueil - BiblioSmart</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @keyframes scroll {
+        0% {
+            transform: translateX(0);
+        }
+        100% {
+            transform: translateX(-100%);
+        }
+        }
+        .animate-scroll {
+        display: flex;
+        animation: scroll 20s linear infinite;
+        }
+
+        html {
+        scroll-behavior: smooth;
+    }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+    <nav class="bg-gray-900 text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <div class="flex-shrink-0">
+                    <a href="{% url 'pgAcc_index' %}" class="flex items-center">
+                        <i class="fas fa-book-open text-blue-400 text-2xl mr-2 animate-pulse"></i>
+                        <span class="text-xl font-bold hover:text-blue-400 transition duration-300">BiblioSmart</span>
+                    </a>
+                </div>
+                <!-- User Actions -->
+                <div class="hidden md:flex items-center space-x-4">
+                    
+                    <a href="{% url 'connexion' %}" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition duration-300">Connexion</a>
+                    <a href="{% url 'inscription' %}" class="text-blue-500 hover:text-blue-400 px-3 py-2 rounded-md text-sm font-medium transition duration-300">Inscription</a>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden">
+                    <button id="mobile-menu-button" class="text-gray-300 hover:text-white focus:outline-none transition duration-300">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-gray-800">
+            <a href="{% url 'connexion' %}" class="block px-4 py-2 text-gray-300 hover:text-white transition duration-300">Connexion</a>
+            <a href="{% url 'inscription' %}" class="block px-4 py-2 text-blue-500 hover:text-blue-400 transition duration-300">Inscription</a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto mt-4">
+        <!-- Hero Section -->
+        <div class="relative bg-gray-900 text-white rounded-2xl overflow-hidden mb-16">
+            <div class="absolute inset-0 bg-gradient-to-r from-gray-900 to-transparent z-10"></div>
+            <img src="https://images.unsplash.com/photo-1507842217343-583bb7270b66?ixlib=rb-1.2.1&auto=format&fit=crop&w=2000&q=80" 
+                 alt="Library" 
+                 class="w-full h-[500px] object-cover transform hover:scale-105 transition duration-500">
+            
+            <div class="absolute inset-0 flex items-center z-20">
+                <div class="max-w-2xl px-8 md:px-12">
+                    <h1 class="text-4xl md:text-5xl font-bold mb-4 leading-tight animate-fade-in">
+                        Bienvenue sur BiblioSmart
+                    </h1>
+                    <p class="text-lg text-gray-300 mb-8 animate-fade-in delay-200">
+                        Découvrez notre collection de livres et gérez vos emprunts en toute simplicité.
+                    </p>
+                    <div class="flex flex-wrap gap-4">
+                        <a href="#most-borrowed-books" 
+                           class="px-8 py-3 bg-white text-gray-900 rounded-lg font-medium hover:bg-gray-100 transition duration-300 shadow-lg transform hover:scale-105">
+                            Explorer la Collection
+                        </a>
+                        {% if not request.session.utilisateur_id %}
+                        <a href="{% url 'connexion' %}" 
+                           class="px-8 py-3 bg-transparent border-2 border-white text-white rounded-lg font-medium hover:bg-white hover:text-gray-900 transition duration-300 transform hover:scale-105">
+                            Se Connecter
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features Section -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+            <div class="bg-white p-6 rounded-xl shadow-sm hover:shadow-lg transition duration-300 transform hover:scale-105">
+                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+                    <i class="fas fa-book text-blue-600 text-xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold mb-2">Collection Variée</h3>
+                <p class="text-gray-600">Accédez à une vaste collection de livres dans différentes catégories.</p>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow-sm hover:shadow-lg transition duration-300 transform hover:scale-105">
+                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+                    <i class="fas fa-clock text-green-600 text-xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold mb-2">Gestion Simplifiée</h3>
+                <p class="text-gray-600">Empruntez et retournez des livres facilement grâce à notre système intuitif.</p>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow-sm hover:shadow-lg transition duration-300 transform hover:scale-105">
+                <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+                    <i class="fas fa-user-circle text-purple-600 text-xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold mb-2">Espace Personnel</h3>
+                <p class="text-gray-600">Suivez vos emprunts et gérez vos livres favoris depuis votre compte.</p>
+            </div>
+        </div>
+
+        <!-- Most Borrowed Books Section -->
+                <!-- Most Borrowed Books Section -->
+        <div id="most-borrowed-books" class="mb-16">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Livres les Plus Empruntés</h2>
+            <div class="relative overflow-hidden">
+                <div id="book-carousel" class="flex space-x-4 animate-scroll">
+                    {% for book in most_borrowed_books %}
+                    <div class="bg-white p-6 rounded-xl shadow-sm hover:shadow-lg transition duration-300 transform hover:scale-105 flex-shrink-0 w-64">
+                        {% if book.image %}
+                        <img src="{{ book.image.url }}" alt="{{ book.titre }}" class="w-full h-auto object-cover rounded-lg shadow-md">
+                        {% else %}
+                        <div class="w-full h-48 bg-gray-200 flex items-center justify-center rounded-lg mb-4">
+                            <i class="fas fa-book text-gray-400 text-4xl"></i>
+                        </div>
+                        {% endif %}
+                        <h3 class="text-lg font-semibold mb-2">{{ book.titre }}</h3>
+                        <p class="text-gray-600 mb-4">{{ book.auteur }}</p>
+                        <a href="{% url 'connexion' %}" 
+                           class="inline-block px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition duration-300 transform hover:scale-105">
+                            Voir Détails
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        
+
+        {% if not request.session.utilisateur_id %}
+        <div class="bg-gray-900 rounded-xl p-8 text-center mb-16 animate-fade-in">
+            <h2 class="text-2xl font-bold text-white mb-4">Rejoignez BiblioSmart aujourd'hui</h2>
+            <p class="text-gray-400 mb-6">Créez votre compte gratuitement et commencez à explorer notre bibliothèque.</p>
+            <a href="{% url 'inscription' %}" 
+               class="inline-block px-8 py-3 bg-white text-gray-900 rounded-lg font-medium hover:bg-gray-100 transition duration-300 transform hover:scale-105">
+                S'inscrire maintenant
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-gray-400 py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- About Section -->
+                <div>
+                    <h3 class="text-white text-lg font-semibold mb-4">À Propos</h3>
+                    <p class="text-gray-400">BiblioSmart est une plateforme innovante pour gérer vos livres et emprunts en toute simplicité.</p>
+                </div>
+                <!-- Links Section -->
+                <div>
+                    <h3 class="text-white text-lg font-semibold mb-4">Liens Utiles</h3>
+                    <ul class="space-y-2">
+                        <li><a href="{% url 'pgAcc_index' %}" class="hover:text-white transition duration-300">Accueil</a></li>
+                        <li><a href="{% url 'connexion' %}" class="hover:text-white transition duration-300">Connexion</a></li>
+                        <li><a href="{% url 'inscription' %}" class="hover:text-white transition duration-300">Inscription</a></li>
+                    </ul>
+                </div>
+                <!-- Contact Section -->
+                <div>
+                    <h3 class="text-white text-lg font-semibold mb-4">Contact</h3>
+                    <p class="text-gray-400">Email: support@bibliosmart.com</p>
+                    <p class="text-gray-400">Téléphone: +33 1 23 45 67 89</p>
+                </div>
+            </div>
+            <div class="mt-8 border-t border-gray-700 pt-4 text-center">
+                <p class="text-gray-500 text-sm">&copy; 2023 BiblioSmart. Tous droits réservés.</p>
+            </div>
+        </div>
+    </footer>
+    <script>
+        document.getElementById('mobile-menu-button').addEventListener('click', function() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        });
+    </script>
+</body>
+</html>

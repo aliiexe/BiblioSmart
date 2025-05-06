@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'biblio_smart',
     'livres',
     'emprunt',
+    'pgAcc',
 ]
 
 MIDDLEWARE = [
@@ -65,6 +66,8 @@ TEMPLATES = [
             os.path.join(BASE_DIR, 'emprunt', 'templates'),
             os.path.join(BASE_DIR, 'utilisateurs', 'templates'),
             os.path.join(BASE_DIR, 'dashboard', 'templates'),
+            os.path.join(BASE_DIR, 'rapports', 'templates'),
+            os.path.join(BASE_DIR, 'pgAcc', 'templates'),
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -89,10 +92,11 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'biblio_smart_db', 
-        'USER': 'root',  # Replace with your MySQL username
-        'PASSWORD':'',  # Replace with your MySQL password
+        'USER': 'root',
+        'PASSWORD':'',
         'HOST': 'localhost',  
-        'PORT': '3306',   
+        'PORT': '3306',
+       
     }
 }
 

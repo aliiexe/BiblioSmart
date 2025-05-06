@@ -73,20 +73,24 @@
                             </a>
                         </li>
                         
-                        <!-- For any authenticated user -->
+                                                <!-- For any authenticated user -->
+                                                <!-- For any authenticated user -->
                         {% if request.session.utilisateur_id %}
-
-                        
-                        {% if request.session.utilisateur_role == 'lecteur' %}
-                        <li>
-                            <a href="{% url 'user_fees' request.session.utilisateur_id %}" class="sidebar-item flex items-center px-4 py-3 text-gray-300 rounded-lg hover:text-white">
-                                <i class="fas fa-money-bill-wave w-5 h-5 mr-3"></i>
-                                <span>My Fees</span>
-                                {% if request.session.total_fees > 0 %}
-                                <span class="ml-auto px-2 py-1 text-xs rounded-full bg-red-600 text-white">€{{ request.session.total_fees|floatformat:2 }}</span>
-                                {% endif %}
-                            </a>
-                        </li>
+                            <!-- Vérifiez si l'utilisateur est un lecteur -->
+                            {% if request.session.utilisateur_role == 'lecteur' %}
+                            <li>
+                                <a href="{% url 'user_fees' request.session.utilisateur_id %}" 
+                                   class="sidebar-item flex items-center px-4 py-3 text-gray-300 rounded-lg hover:text-white">
+                                    <i class="fas fa-money-bill-wave w-5 h-5 mr-3"></i>
+                                    <span>My Fees</span>
+                                    {% if request.session.total_fees and request.session.total_fees > 0 %}
+                                    <span class="ml-auto px-2 py-1 text-xs rounded-full bg-red-600 text-white">
+                                        €{{ request.session.total_fees|floatformat:2 }}
+                                    </span>
+                                    {% endif %}
+                                </a>
+                            </li>
+                            {% endif %}
                         {% endif %}
 
                         {% if request.session.utilisateur_role == 'lecteur' %}
@@ -143,7 +147,7 @@
                                 <span>Dashboard</span>
                             </a>
                         </li>
-                        {% endif %}
+                        
                     </ul>
                     
                     <div class="mt-10 pt-6 border-t border-gray-800">
