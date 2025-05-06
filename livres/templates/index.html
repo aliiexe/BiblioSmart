@@ -51,6 +51,16 @@
 <body class="bg-light text-dark">
     <div class="container py-5">
         <h1 class="mb-4 text-primary text-center">Book Collection</h1>
+
+        <!-- Formulaire de recherche -->
+        <!-- <div class="mb-4">
+            <form method="get" action="{% url 'book_collection' %}">
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="Search by Title, Author, Category, or ISBN" name="search" value="{{ request.GET.search }}">
+                    <button class="btn btn-outline-secondary" type="submit">Search</button>
+                </div>
+            </form>
+        </div> -->
         
         <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
             {% for book in books %}
@@ -63,20 +73,14 @@
                             <div class="mb-3">
                                 <span class="book-category bg-info bg-opacity-25 text-info">{{ book.categorie }}</span>
                             </div>
-                            
                             <div>
-                                
                                 <a href="{% url 'edit_book' book.id %}" class="btn btn-warning">Edit</a>
-
                                 <form method="post" action="{% url 'delete_book' book.id %}" style="display:inline;">
                                     {% csrf_token %}
                                     <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this book?');">
                                         Delete
                                     </button>
                                 </form>
-                                
-                                
-                                
                             </div>
                         </div>
                         <div class="card-footer">
@@ -96,6 +100,7 @@
                 </div>
             {% endfor %}
         </div>
+
         <div class="text-center mt-4">
             <a href="{% url 'add_book' %}" class="btn btn-primary">Add New Book</a>
         </div>
@@ -103,4 +108,4 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-{% endblock %}  
+{% endblock %}

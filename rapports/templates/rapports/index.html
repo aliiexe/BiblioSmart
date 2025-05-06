@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+
+{% block title %}Rapports{% endblock %}
+{% block header_title %}Rapports{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="bg-white rounded-2xl shadow-sm overflow-hidden mb-6">
+        <div class="p-8">
+            <h1 class="text-2xl font-bold text-gray-900">Gestion des Rapports</h1>
+            <p class="text-gray-600">Générez et consultez des rapports détaillés sur les livres, les adhérents, les activités et les finances.</p>
+        </div>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Rapport des livres -->
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center">
+                        <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+                            <i class="fas fa-book text-blue-600"></i>
+                        </div>
+                        <h2 class="text-lg font-semibold text-gray-900">Rapport des Livres</h2>
+                    </div>
+                </div>
+                <p class="text-gray-600 mb-4">Consultez les statistiques sur les livres disponibles, empruntés et en retard.</p>
+                <a href="{% url 'rapport_livres' %}" class="text-blue-600 hover:text-blue-800 font-medium">
+                    Voir le rapport <i class="fas fa-arrow-right ml-2"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Rapport des adhérents -->
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center">
+                        <div class="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center mr-3">
+                            <i class="fas fa-users text-green-600"></i>
+                        </div>
+                        <h2 class="text-lg font-semibold text-gray-900">Rapport des Adhérents</h2>
+                    </div>
+                </div>
+                <p class="text-gray-600 mb-4">Analysez les activités des lecteurs et des bibliothécaires.</p>
+                <a href="{% url 'rapport_adherents' %}" class="text-blue-600 hover:text-blue-800 font-medium">
+                    Voir le rapport <i class="fas fa-arrow-right ml-2"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Rapport d'activité -->
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center">
+                        <div class="h-10 w-10 rounded-full bg-yellow-100 flex items-center justify-center mr-3">
+                            <i class="fas fa-chart-line text-yellow-600"></i>
+                        </div>
+                        <h2 class="text-lg font-semibold text-gray-900">Rapport d'Activité</h2>
+                    </div>
+                </div>
+                <p class="text-gray-600 mb-4">Obtenez des statistiques mensuelles ou annuelles sur les emprunts.</p>
+                <a href="{% url 'rapport_activite' %}" class="text-blue-600 hover:text-blue-800 font-medium">
+                    Voir le rapport <i class="fas fa-arrow-right ml-2"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Rapport financier -->
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center">
+                        <div class="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center mr-3">
+                            <i class="fas fa-dollar-sign text-red-600"></i>
+                        </div>
+                        <h2 class="text-lg font-semibold text-gray-900">Rapport Financier</h2>
+                    </div>
+                </div>
+                <p class="text-gray-600 mb-4">Consultez les amendes perçues et les pénalités réglées.</p>
+                <a href="{% url 'rapport_financier' %}" class="text-blue-600 hover:text-blue-800 font-medium">
+                    Voir le rapport <i class="fas fa-arrow-right ml-2"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    <!-- Statistiques des Livres -->
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-6">
+        <div class="p-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Statistiques des Livres</h2>
+            <canvas id="booksChart" width="400" height="200"></canvas>
+        </div>
+    </div>
+
+    <!-- Statistiques des Utilisateurs -->
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-6">
+        <div class="p-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Statistiques des Utilisateurs</h2>
+            <canvas id="usersChart" width="400" height="200"></canvas>
+        </div>
+    </div>
+
+    <!-- Informations sur les livres les plus et les moins empruntés -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div class="p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Livre le plus emprunté</h2>
+                {% if most_borrowed %}
+                <p class="text-gray-600">Titre : <strong>{{ most_borrowed.titre }}</strong></p>
+                <p class="text-gray-600">Auteur : <strong>{{ most_borrowed.auteur }}</strong></p>
+                <p class="text-gray-600">Nombre d'emprunts : <strong>{{ most_borrowed.emprunts_count }}</strong></p>
+                {% else %}
+                <p class="text-gray-600">Aucun livre emprunté.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div class="p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Livre le moins emprunté</h2>
+                {% if least_borrowed %}
+                <p class="text-gray-600">Titre : <strong>{{ least_borrowed.titre }}</strong></p>
+                <p class="text-gray-600">Auteur : <strong>{{ least_borrowed.auteur }}</strong></p>
+                <p class="text-gray-600">Nombre d'emprunts : <strong>{{ least_borrowed.emprunts_count }}</strong></p>
+                {% else %}
+                <p class="text-gray-600">Aucun livre emprunté.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js Script -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Données pour les livres
+    const booksChartData = {
+        labels: ['Total Livres', 'Livres Disponibles', 'Livres Empruntés'],
+        datasets: [{
+            label: 'Statistiques des Livres',
+            data: [{{ books_data.Total_Livres }}, {{ books_data.Livres_Disponibles }}, {{ books_data.Livres_Empruntés }}],
+            backgroundColor: ['#4CAF50', '#FFC107', '#F44336'],
+            borderColor: ['#388E3C', '#FFA000', '#D32F2F'],
+            borderWidth: 1
+        }]
+    };
+
+    // Configuration du graphique des livres
+    const booksChartConfig = {
+        type: 'bar',
+        data: booksChartData,
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: true,
+                    text: 'Statistiques des Livres'
+                }
+            }
+        }
+    };
+
+    // Initialisation du graphique des livres
+    const booksChart = new Chart(
+        document.getElementById('booksChart'),
+        booksChartConfig
+    );
+
+    // Données pour les utilisateurs
+    const usersChartData = {
+        labels: ['Total Utilisateurs', 'Membres Actifs', 'Membres Inactifs'],
+        datasets: [{
+            label: 'Statistiques des Utilisateurs',
+            data: [{{ users_data.Total_Utilisateurs }}, {{ users_data.Membres_Actifs }}, {{ users_data.Membres_Inactifs }}],
+            backgroundColor: ['#2196F3', '#8BC34A', '#FF5722'],
+            borderColor: ['#1976D2', '#689F38', '#E64A19'],
+            borderWidth: 1
+        }]
+    };
+
+    // Configuration du graphique des utilisateurs
+    const usersChartConfig = {
+        type: 'pie',
+        data: usersChartData,
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: true,
+                    text: 'Statistiques des Utilisateurs'
+                }
+            }
+        }
+    };
+
+    // Initialisation du graphique des utilisateurs
+    const usersChart = new Chart(
+        document.getElementById('usersChart'),
+        usersChartConfig
+    );
+</script>
+{% endblock %}

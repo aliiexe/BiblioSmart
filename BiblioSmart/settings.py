@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'biblio_smart',
     'livres',
     'emprunt',
+    'pgAcc',
 ]
 
 MIDDLEWARE = [
@@ -65,6 +66,8 @@ TEMPLATES = [
             os.path.join(BASE_DIR, 'emprunt', 'templates'),
             os.path.join(BASE_DIR, 'utilisateurs', 'templates'),
             os.path.join(BASE_DIR, 'dashboard', 'templates'),
+            os.path.join(BASE_DIR, 'rapports', 'templates'),
+            os.path.join(BASE_DIR, 'pgAcc', 'templates'),
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -85,6 +88,17 @@ WSGI_APPLICATION = 'BiblioSmart.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 # CREATE DATABASE biblio_smart_db;
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'biblio_smart_db', 
+        'USER': 'root', 
+        'PASSWORD':'Ali10062005bourak@',
+        'HOST': 'localhost',  
+        'PORT': '3306',   
+    }
+}
+
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.db.backends.mysql',
