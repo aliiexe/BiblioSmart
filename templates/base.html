@@ -73,8 +73,6 @@
                             </a>
                         </li>
                         
-                                                <!-- For any authenticated user -->
-                                                <!-- For any authenticated user -->
                         {% if request.session.utilisateur_id %}
                             <!-- Vérifiez si l'utilisateur est un lecteur -->
                             {% if request.session.utilisateur_role == 'lecteur' %}
@@ -140,13 +138,14 @@
                         </li>
                         {% endif %}
                         
-                        <!-- Dashboard for all authenticated users -->
+                        {% if request.session.utilisateur_id %}
                         <li>
                             <a href="{% url 'dashboard' %}" class="sidebar-item flex items-center px-4 py-3 text-gray-300 rounded-lg hover:text-white">
                                 <i class="fas fa-tachometer-alt w-5 h-5 mr-3"></i>
                                 <span>Dashboard</span>
                             </a>
                         </li>
+                        {% endif %}
                         
                     </ul>
                     
