@@ -88,16 +88,6 @@ WSGI_APPLICATION = 'BiblioSmart.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 # CREATE DATABASE biblio_smart_db;
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'biblio_smart_db', 
-        'USER': 'root', 
-        'PASSWORD':'Ali10062005bourak@',
-        'HOST': 'localhost',  
-        'PORT': '3306',   
-    }
-}
 
 # DATABASES = {
 #     'default': {
