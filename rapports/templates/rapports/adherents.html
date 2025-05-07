@@ -1,33 +1,82 @@
 {% extends 'base.html' %}
 
-{% block title %}Rapport des Adhérents{% endblock %}
-{% block header_title %}Rapport des Adhérents{% endblock %}
+{% block title %}Members Report{% endblock %}
+{% block header_title %}Members Report{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto">
-    <div class="bg-white rounded-xl shadow-sm p-6">
-        <h1 class="text-2xl font-bold text-gray-900 mb-6">Rapport des Adhérents</h1>
-        <p class="text-gray-600 mb-4">Téléchargez un rapport des membres actifs et des utilisateurs en retard au format PDF ou Excel.</p>
+<div class="max-w-4xl mx-auto px-4 sm:px-6">
+    <!-- Back Button -->
+    <div class="mb-6">
+        <a href="{% url 'index_rapports' %}" class="text-gray-600 hover:text-gray-900 flex items-center">
+            <i class="fas fa-arrow-left mr-2"></i> Back to Reports
+        </a>
+    </div>
 
-        <form method="post">
-            {% csrf_token %}
-            <div class="flex items-center space-x-4">
-                <label>
-                    <input type="radio" name="format" value="pdf" required>
-                    <span class="ml-2">PDF</span>
-                </label>
-                <label>
-                    <input type="radio" name="format" value="excel" required>
-                    <span class="ml-2">Excel</span>
-                </label>
+    <!-- Main Card -->
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-purple-500 to-purple-600 px-6 py-4 text-white">
+            <div class="flex items-center">
+                <div class="p-2 bg-white bg-opacity-30 rounded-lg mr-3">
+                    <i class="fas fa-users text-white"></i>
+                </div>
+                <h1 class="text-xl font-semibold">Members Report</h1>
             </div>
+        </div>
+        
+        <div class="p-6">
+            <p class="text-gray-600 mb-6">View member statistics and download the report in your preferred format.</p>
 
-            <div class="mt-6">
-                <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-300">
-                    Télécharger
-                </button>
-            </div>
-        </form>
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+
+                <!-- Format Selection -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <label class="block text-sm font-medium text-gray-700 mb-3">Report Format</label>
+                    <div class="flex flex-wrap gap-4">
+                        <label class="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-purple-50 transition-colors">
+                            <input type="radio" name="format" value="pdf" required class="h-4 w-4 text-purple-600 focus:ring-purple-500">
+                            <span class="ml-2 flex items-center">
+                                <i class="far fa-file-pdf text-red-500 mr-2 text-lg"></i>
+                                PDF Document
+                            </span>
+                        </label>
+                        <label class="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-purple-50 transition-colors">
+                            <input type="radio" name="format" value="excel" required class="h-4 w-4 text-purple-600 focus:ring-purple-500">
+                            <span class="ml-2 flex items-center">
+                                <i class="far fa-file-excel text-green-500 mr-2 text-lg"></i>
+                                Excel Spreadsheet
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="flex justify-end">
+                    <button type="submit" 
+                            class="px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg hover:from-purple-600 hover:to-purple-700 transition duration-300 font-medium shadow-sm flex items-center">
+                        <i class="fas fa-download mr-2"></i>
+                        Download Report
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Help Section -->
+    <div class="mt-8 bg-white rounded-xl shadow-sm p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+            <i class="fas fa-info-circle text-purple-500 mr-2"></i>
+            About Member Reports
+        </h2>
+        <p class="text-gray-600 mb-3">
+            Member reports provide information about the status of library members:
+        </p>
+        <ul class="list-disc pl-5 text-gray-600 space-y-1">
+            <li><span class="font-medium">Active members</span>: list of members with current loans</li>
+            <li><span class="font-medium">Overdue members</span>: list of members with overdue items</li>
+            <li>Includes contact details, loan history, and current status</li>
+        </ul>
     </div>
 </div>
 {% endblock %}

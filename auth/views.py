@@ -9,43 +9,78 @@ from biblio_smart.models import Utilisateur
 from django.urls import reverse
 from biblio_smart.models import Lecteur, Bibliothecaire
 
+# def inscription(request):
+#     if request.method == 'POST':
+#         nom = request.POST.get('nom')
+#         email = request.POST.get('email')
+#         mot_de_passe = request.POST.get('mot_de_passe')
+#         role = request.POST.get('role', 'lecteur')
+
+#         # Check if a user with the same email already exists
+#         if Utilisateur.objects.filter(email=email).exists():
+#             messages.error(request, 'Un utilisateur avec cet email existe déjà.')
+#             return render(request, 'inscription.html')
+
+#         # Create a Lecteur or Bibliothecaire based on the role
+#         if role == 'lecteur':
+#             utilisateur = Lecteur(
+#                 nom=nom,
+#                 email=email,
+#                 mot_de_passe=mot_de_passe,
+#                 role=role
+#             )
+#         elif role == 'bibliothecaire':
+#             utilisateur = Bibliothecaire(
+#                 nom=nom,
+#                 email=email,
+#                 mot_de_passe=mot_de_passe,
+#                 role=role
+#             )
+#         else:
+#             messages.error(request, 'Rôle invalide.')
+#             return render(request, 'inscription.html')
+
+#         # Save the user instance
+#         utilisateur.save()
+#         messages.success(request, 'Inscription réussie. Vous pouvez maintenant vous connecter.')
+#         return redirect('connexion')
+
+#     return render(request, 'inscription.html')
+
+
+
+# =============
+
+
 def inscription(request):
     if request.method == 'POST':
         nom = request.POST.get('nom')
         email = request.POST.get('email')
         mot_de_passe = request.POST.get('mot_de_passe')
-        role = request.POST.get('role', 'lecteur')
 
-        # Check if a user with the same email already exists
+        # Définir le rôle par défaut comme "lecteur"
+        role = 'lecteur'
+
+        # Vérifier si un utilisateur avec le même email existe déjà
         if Utilisateur.objects.filter(email=email).exists():
             messages.error(request, 'Un utilisateur avec cet email existe déjà.')
             return render(request, 'inscription.html')
 
-        # Create a Lecteur or Bibliothecaire based on the role
-        if role == 'lecteur':
-            utilisateur = Lecteur(
-                nom=nom,
-                email=email,
-                mot_de_passe=mot_de_passe,
-                role=role
-            )
-        elif role == 'bibliothecaire':
-            utilisateur = Bibliothecaire(
-                nom=nom,
-                email=email,
-                mot_de_passe=mot_de_passe,
-                role=role
-            )
-        else:
-            messages.error(request, 'Rôle invalide.')
-            return render(request, 'inscription.html')
+        # Créer un utilisateur Lecteur
+        utilisateur = Lecteur(
+            nom=nom,
+            email=email,
+            mot_de_passe=mot_de_passe,
+            role=role
+        )
 
-        # Save the user instance
+        # Sauvegarder l'utilisateur
         utilisateur.save()
         messages.success(request, 'Inscription réussie. Vous pouvez maintenant vous connecter.')
         return redirect('connexion')
 
     return render(request, 'inscription.html')
+
 
 
 def connexion(request):
