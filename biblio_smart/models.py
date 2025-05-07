@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.mail import send_mail
 
 class Utilisateur(models.Model):
     nom = models.CharField(max_length=255)
@@ -141,6 +142,9 @@ class Notification(models.Model):
         ('book_available', 'Book Available'),
         ('overdue', 'Overdue Book'),
         ('system', 'System Notification'),
+        ('book_borrowed', 'Book Borrowed'),
+        ('book_returned', 'Book Returned'),  # New type for book returned
+        ('loan_paid', 'Loan Paid'),
     )
     
     user = models.ForeignKey(Utilisateur, on_delete=models.CASCADE, related_name='notifications')
@@ -152,6 +156,27 @@ class Notification(models.Model):
     
     class Meta:
         ordering = ['-created_at']
+    def save(self, *args, **kwargs):
+        # Call the original save method
+        super().save(*args, **kwargs)
+
+        # Send email notification for 'book_borrowed' type
+        if self.type in ['book_borrowed', 'book_returned', 'loan_paid']:
+            email_subject = ''
+            if self.type == 'book_borrowed':
+                email_subject = 'Book Borrowed Notification'
+            elif self.type == 'book_returned':
+                email_subject = 'Book Returned Notification'
+            elif self.type == 'loan_paid':
+                email_subject = 'Loan Payment Confirmation'
+
+            send_mail(
+                subject=email_subject,
+                message=self.message,
+                from_email='elmsalah1@gmail.com',
+                recipient_list=[self.user.email],
+                fail_silently=False,
+            ) 
 
 class BookComment(models.Model):
     livre = models.ForeignKey(Livre, on_delete=models.CASCADE, related_name='comments')

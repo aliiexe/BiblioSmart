@@ -425,7 +425,7 @@ def return_book(request, book_id):
     
     # Find the latest active loan for this book and user
     emprunt = Emprunt.objects.filter(
-        livre=book, 
+        livre=book,         
         lecteur=utilisateur,
         returned=False
     ).order_by('-id').first()
