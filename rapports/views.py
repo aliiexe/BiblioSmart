@@ -517,89 +517,78 @@ def rapport_financier(request):
     if request.method == 'POST':
         format_rapport = request.POST.get('format')
 
-        # Récupérer les données des amendes
-        amendes = Amende.objects.filter(statut=True)  
-        print(f"Nombre d'amendes récupérées : {amendes.count()}")  
+        # Récupérer les données des amendes impayées
+        amendes = Amende.objects.filter(statut=False)
+        print(f"Nombre d'amendes récupérées : {amendes.count()}")
+        for amende in amendes:
+            print(f"Lecteur : {amende.emprunt.lecteur.nom}, Livre : {amende.emprunt.livre.titre}, Montant : {amende.montant}")
 
         if format_rapport == 'pdf':
             return generate_pdf(amendes)
 
     return render(request, 'rapports/financier.html')
-
 def generate_pdf(amendes):
+    # Création du buffer et du PDF
     buffer = io.BytesIO()
     pdf = canvas.Canvas(buffer, pagesize=letter)
-    pdf.setTitle("Rapport Financier")
+    pdf.setTitle("Rapport Financier - Amendes Impayées")
 
-    # Titre du rapport
-    pdf.setFont("Helvetica-Bold", 16)
-    pdf.drawString(200, 750, "Rapport Financier")
+    # Variables globales pour la mise en page
+    page_width, page_height = letter
+    margin = 50
+    line_height = 20
 
-    # En-têtes des colonnes
-    pdf.setFont("Helvetica-Bold", 12)
-    y = 700
-    pdf.drawString(50, y, "Nom Lecteur")
-    pdf.drawString(200, y, "Montant (€)")
-    pdf.drawString(300, y, "Jours de Retard")
-    pdf.drawString(400, y, "Livre")  # Changé de "Emprunt ID" à "Livre"
-
-    # Initialiser le total
-    total_amendes = 0
-    
-    # Ajouter les données
-    y = 670
-    pdf.setFont("Helvetica", 10)
-    
-    # Ajouter une nouvelle page et réinitialiser les en-têtes
-    def add_new_page():
-        nonlocal y
-        pdf.showPage()
+    def draw_header():
+        # Titre du rapport
         pdf.setFont("Helvetica-Bold", 16)
-        pdf.drawString(200, 750, "Rapport Financier")
+        pdf.drawString(margin, page_height - margin, "Rapport Financier - Amendes Impayées")
+        
+        # En-têtes des colonnes
+        y = page_height - margin - 40
         pdf.setFont("Helvetica-Bold", 12)
-        y = 700
-        pdf.drawString(50, y, "Nom Lecteur")
-        pdf.drawString(200, y, "Montant (€)")
-        pdf.drawString(300, y, "Jours de Retard")
-        pdf.drawString(400, y, "Livre")  # Changé ici aussi
-        y = 670
-        pdf.setFont("Helvetica", 10)
+        pdf.drawString(margin, y, "Nom Lecteur")
+        pdf.drawString(margin + 200, y, "Livre")
+        pdf.drawString(margin + 400, y, "Montant (€)")
+        return y - line_height
 
+    # Position initiale
+    y = draw_header()
+    total_amendes = 0
+
+    # Boucle sur les amendes
     for amende in amendes:
         try:
-            if y < 50:  # Si on arrive en bas de page
-                add_new_page()
+            # Nouvelle page si nécessaire
+            if y < margin + line_height:
+                pdf.showPage()
+                y = draw_header()
 
-            # Calculer les jours de retard
-            if amende.emprunt.date_retour_prevue and amende.emprunt.date_retour_effective:
-                jours_retard = max((amende.emprunt.date_retour_effective - amende.emprunt.date_retour_prevue).days, 0)
-            else:
-                jours_retard = 0
-
-            # Ajouter la ligne
-            pdf.drawString(50, y, str(amende.emprunt.lecteur.nom))
-            pdf.drawString(200, y, f"{amende.montant:.2f}")
-            pdf.drawString(300, y, str(jours_retard))
-            pdf.drawString(400, y, str(amende.emprunt.livre.titre))  # Affiche le titre du livre au lieu de l'ID
+            # Écriture des données
+            pdf.setFont("Helvetica", 10)
+            pdf.drawString(margin, y, str(amende.emprunt.lecteur.nom)[:30])
+            pdf.drawString(margin + 200, y, str(amende.emprunt.livre.titre)[:30])
+            pdf.drawString(margin + 400, y, f"{amende.montant:.2f} €")
 
             total_amendes += amende.montant
-            y -= 20
+            y -= line_height
 
-        except AttributeError as e:
-            print(f"Erreur lors du traitement de l'amende ID {amende.id}: {e}")
+        except Exception as e:
+            print(f"Erreur avec l'amende {amende.id}: {str(e)}")
 
-    # Ajouter le total à la fin
-    if y < 70:  # S'assurer qu'il y a assez d'espace pour le total
-        add_new_page()
-    
-    y -= 40
+    # Ajout du total
+    if y < margin + 40:  # S'il ne reste pas assez de place pour le total
+        pdf.showPage()
+        y = page_height - margin - 40
+
     pdf.setFont("Helvetica-Bold", 12)
-    pdf.drawString(50, y, "Total des amendes:")
-    pdf.drawString(200, y, f"{total_amendes:.2f} €")
+    pdf.drawString(margin, y - 20, "Total des amendes impayées:")
+    pdf.drawString(margin + 400, y - 20, f"{total_amendes:.2f} €")
 
+    # Finalisation du PDF
     pdf.save()
     buffer.seek(0)
-
+    
+    # Retour de la réponse
     response = HttpResponse(buffer, content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="rapport_financier.pdf"'
     return response
