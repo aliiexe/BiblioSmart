@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+
+{% block title %}Pay Fees{% endblock %}
+{% block header_title %}Pay Fees{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="mb-6">
+        <a href="{% url 'user_fees' user.id %}" class="text-gray-600 hover:text-gray-900 flex items-center">
+            <i class="fas fa-arrow-left mr-2"></i> Back to Fees
+        </a>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-md overflow-hidden">
+        <div class="p-8">
+            <h1 class="text-2xl font-bold text-gray-900 mb-6">Payment</h1>
+            
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 rounded">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 text-blue-500">
+                        <i class="fas fa-info-circle text-xl"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-blue-700">Total amount to pay: <span class="font-bold text-blue-800">€{{ total_unpaid|floatformat:2 }}</span></p>
+                    </div>
+                </div>
+            </div>
+            
+            <form method="post" action="{% url 'pay_fees' user.id %}" id="payment-form" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- Payment Method Selection -->
+                <div>
+                    <label for="payment_method" class="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="relative">
+                            <input type="radio" name="payment_method" id="card" value="card" class="hidden peer" checked>
+                            <label for="card" class="flex items-center justify-center p-4 bg-white border border-gray-300 rounded-lg cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-50 hover:bg-gray-50 transition-all duration-200">
+                                <i class="far fa-credit-card text-lg mr-2"></i>
+                                <span>Credit Card</span>
+                            </label>
+                        </div>
+                        <div class="relative">
+                            <input type="radio" name="payment_method" id="paypal" value="paypal" class="hidden peer">
+                            <label for="paypal" class="flex items-center justify-center p-4 bg-white border border-gray-300 rounded-lg cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-50 hover:bg-gray-50 transition-all duration-200">
+                                <i class="fab fa-paypal text-lg mr-2"></i>
+                                <span>PayPal</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Credit Card Form (initially visible) -->
+                <div id="card-form" class="space-y-4">
+                    <div class="border border-gray-200 rounded-lg p-5 bg-gray-50">
+                        <div class="mb-4">
+                            <label for="card_number" class="block text-sm font-medium text-gray-700 mb-1">Card Number</label>
+                            <input type="text" id="card_number" placeholder="1234 5678 9012 3456" maxlength="19" required
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="card_name" class="block text-sm font-medium text-gray-700 mb-1">Cardholder Name</label>
+                            <input type="text" id="card_name" placeholder="John Smith" required
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="expiry" class="block text-sm font-medium text-gray-700 mb-1">Expiration Date</label>
+                                <input type="text" id="expiry" placeholder="MM/YY" maxlength="5" required
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+                            <div>
+                                <label for="cvv" class="block text-sm font-medium text-gray-700 mb-1">Security Code (CVV)</label>
+                                <input type="text" id="cvv" placeholder="123" maxlength="3" required
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- PayPal Form (initially hidden) -->
+                <div id="paypal-form" class="hidden space-y-4">
+                    <div class="border border-gray-200 rounded-lg p-5 bg-gray-50 text-center">
+                        <img src="https://www.paypalobjects.com/webstatic/mktg/logo/pp_cc_mark_111x69.jpg" alt="PayPal" class="h-16 mx-auto mb-4">
+                        <p class="text-gray-600 mb-4">You will be redirected to PayPal to complete your payment securely.</p>
+                    </div>
+                </div>
+                
+                <!-- Submit Button -->
+                <div class="flex justify-end">
+                    <button type="button" id="submit-payment" 
+                            class="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition duration-300 font-medium shadow-sm">
+                        <i class="fas fa-lock mr-2"></i> Pay Securely
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const cardRadio = document.getElementById('card');
+    const paypalRadio = document.getElementById('paypal');
+    const cardForm = document.getElementById('card-form');
+    const paypalForm = document.getElementById('paypal-form');
+    const submitButton = document.getElementById('submit-payment');
+    const paymentForm = document.getElementById('payment-form');
+    
+    // Format card number with spaces
+    const cardNumber = document.getElementById('card_number');
+    cardNumber.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+        let formattedValue = '';
+        for (let i = 0; i < value.length; i++) {
+            if (i > 0 && i % 4 === 0) {
+                formattedValue += ' ';
+            }
+            formattedValue += value[i];
+        }
+        e.target.value = formattedValue;
+    });
+    
+    // Format expiry date
+    const expiry = document.getElementById('expiry');
+    expiry.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length > 2) {
+            value = value.substring(0, 2) + '/' + value.substring(2, 4);
+        }
+        e.target.value = value;
+    });
+    
+    // Toggle payment forms
+    cardRadio.addEventListener('change', function() {
+        if (this.checked) {
+            cardForm.classList.remove('hidden');
+            paypalForm.classList.add('hidden');
+        }
+    });
+    
+    paypalRadio.addEventListener('change', function() {
+        if (this.checked) {
+            cardForm.classList.add('hidden');
+            paypalForm.classList.remove('hidden');
+        }
+    });
+    
+    // Submit form on button click after validation
+    submitButton.addEventListener('click', function() {
+        if (cardRadio.checked) {
+            // Validate card form
+            const cardNumberValue = cardNumber.value.replace(/\s+/g, '');
+            const cardNameValue = document.getElementById('card_name').value;
+            const expiryValue = expiry.value;
+            const cvvValue = document.getElementById('cvv').value;
+            
+            if (cardNumberValue.length !== 16) {
+                alert('Please enter a valid card number');
+                return;
+            }
+            
+            if (cardNameValue.trim() === '') {
+                alert('Please enter the cardholder name');
+                return;
+            }
+            
+            if (expiryValue.length !== 5) {
+                alert('Please enter a valid expiration date (MM/YY)');
+                return;
+            }
+            
+            if (cvvValue.length !== 3) {
+                alert('Please enter a valid CVV code');
+                return;
+            }
+        }
+        
+        // Submit the form
+        paymentForm.submit();
+    });
+});
+</script>
+{% endblock %}

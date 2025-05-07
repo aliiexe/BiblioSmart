@@ -285,3 +285,52 @@ def user_fees(request, user_id):
     }
     
     return render(request, 'emprunts/user_fees.html', context)
+
+# ========
+
+from django.db.models import Sum
+
+def pay_fees(request, user_id):
+    # Vérifiez si l'utilisateur est connecté
+    current_user_id = request.session.get('utilisateur_id')
+    if current_user_id is None:
+        messages.error(request, "Vous devez être connecté pour payer vos frais.")
+        return redirect('connexion')
+
+    # Vérifiez si l'utilisateur a la permission
+    if int(current_user_id) != user_id and request.session.get('utilisateur_role') != 'bibliothecaire':
+        messages.error(request, "Vous n'avez pas la permission de payer ces frais.")
+        return redirect('dashboard')
+
+    # Récupérez les amendes impayées pour l'utilisateur
+    user = get_object_or_404(Lecteur, id=user_id)
+    unpaid_amendes = Amende.objects.filter(emprunt__lecteur=user, statut=False)
+    total_unpaid = sum(amende.montant for amende in unpaid_amendes)
+
+    if request.method == 'POST':
+        # Simuler un paiement réussi
+        payment_method = request.POST.get('payment_method')
+        if payment_method and total_unpaid > 0:
+            # Marquer toutes les amendes comme payées
+            unpaid_amendes.update(statut=True)
+
+            # Mettre à jour le total des frais dans la session
+            remaining_fees = Amende.objects.filter(emprunt__lecteur=user, statut=False).aggregate(total=Sum('montant'))['total'] or 0
+            request.session['total_fees'] = float(remaining_fees) if remaining_fees is not None else 0.0
+
+            # Sauvegarder la session
+            request.session.modified = True
+
+            # Debug line to check the value
+            print(f"Updated session total_fees: {request.session['total_fees']}")
+
+            messages.success(request, f"Paiement de {total_unpaid:.2f} € effectué avec succès via {payment_method}.")
+            return redirect('user_fees', user_id=user_id)
+        else:
+            messages.error(request, "Une erreur s'est produite lors du paiement. Veuillez réessayer.")
+
+    return render(request, 'emprunts/pay_fees.html', {
+        'user': user,
+        'unpaid_amendes': unpaid_amendes,
+        'total_unpaid': total_unpaid,
+    })

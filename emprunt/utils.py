@@ -34,11 +34,18 @@ def check_overdue_loans(user_id):
     stats['current_overdue_count'] = current_overdue.count()
     
     for loan in current_overdue:
+        # First check if the loan already has a paid fine
+        existing_paid_amende = Amende.objects.filter(emprunt=loan, statut=True).exists()
+        
+        # Skip this loan if it already has a paid fine
+        if existing_paid_amende:
+            continue
+            
         days_overdue = (today - loan.date_retour_prevue).days
         fee = days_overdue * fee_per_day
         stats['current_overdue_fees'] += fee
         
-        # Create or update fine record
+        # Create or update fine record (only for unpaid fines)
         amende, created = Amende.objects.get_or_create(
             emprunt=loan,
             defaults={
@@ -47,8 +54,8 @@ def check_overdue_loans(user_id):
             }
         )
         
-        # If fine already exists, update the amount
-        if not created:
+        # If fine already exists and is unpaid, update the amount
+        if not created and not amende.statut:
             amende.montant = fee
             amende.save()
     
@@ -62,6 +69,13 @@ def check_overdue_loans(user_id):
     stats['past_overdue_count'] = past_overdue.count()
     
     for loan in past_overdue:
+        # Check if the loan already has a paid fine
+        existing_paid_amende = Amende.objects.filter(emprunt=loan, statut=True).exists()
+        
+        # Skip this loan if it already has a paid fine
+        if existing_paid_amende:
+            continue
+            
         days_overdue = (loan.date_retour - loan.date_retour_prevue).days
         fee = days_overdue * fee_per_day
         stats['past_overdue_fees'] += fee
@@ -76,13 +90,18 @@ def check_overdue_loans(user_id):
                 montant=fee,
                 statut=False  # Not paid
             )
-        # If fine exists but amount is different, update it
-        elif amende.montant != fee:
+        # If fine exists but is unpaid and amount is different, update it
+        elif not amende.statut and amende.montant != fee:
             amende.montant = fee
             amende.save()
     
-    # Calculate totals
+    # Calculate totals - but only include unpaid fees for the total
+    unpaid_fees = Amende.objects.filter(
+        emprunt__lecteur_id=user_id, 
+        statut=False
+    ).aggregate(total=models.Sum('montant'))['total'] or 0
+    
     stats['total_overdue_count'] = stats['current_overdue_count'] + stats['past_overdue_count']
-    stats['total_fees'] = stats['current_overdue_fees'] + stats['past_overdue_fees']
+    stats['total_fees'] = float(unpaid_fees)
     
     return stats

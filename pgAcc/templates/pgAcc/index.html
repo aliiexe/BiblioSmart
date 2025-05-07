@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BiblioSmart - Modern Library Management</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        teal: {
+                            50: '#EFFCF6',
+                            100: '#DEF7EC',
+                            200: '#BCF0DA',
+                            300: '#84E1BC',
+                            400: '#31C48D',
+                            500: '#0E9F6E',
+                            600: '#057A55',
+                            700: '#046C4E',
+                            800: '#03543F',
+                            900: '#014737'
+                        },
+                        purple: {
+                            50: '#F6F5FF',
+                            100: '#EDEBFE',
+                            200: '#DCD7FE',
+                            300: '#CABFFD',
+                            400: '#AC94FA',
+                            500: '#9061F9',
+                            600: '#7E3AF2',
+                            700: '#6C2BD9',
+                            800: '#5521B5',
+                            900: '#4A1D96'
+                        },
+                        dark: {
+                            50: '#F9FAFB',
+                            100: '#F3F4F6',
+                            200: '#E5E7EB',
+                            300: '#D1D5DB',
+                            400: '#9CA3AF',
+                            500: '#6B7280',
+                            600: '#4B5563',
+                            700: '#374151',
+                            800: '#1F2937',
+                            900: '#111827'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                        display: ['Playfair Display', 'serif']
+                    },
+                    boxShadow: {
+                        'soft': '0 10px 25px -5px rgba(0, 0, 0, 0.05)',
+                        'card': '0 15px 35px rgba(0, 0, 0, 0.07)',
+                        'glow': '0 0 20px rgba(14, 159, 110, 0.15)',
+                        'purple-glow': '0 0 20px rgba(126, 58, 242, 0.15)'
+                    },
+                    backgroundImage: {
+                        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
+        
+        * {
+            scroll-behavior: smooth;
+        }
+        
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .hero-gradient {
+            background: linear-gradient(120deg, rgba(14, 159, 110, 0.95), rgba(126, 58, 242, 0.85));
+        }
+        .card-hover {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .card-hover:hover {
+            transform: translateY(-10px);
+        }
+        .book-card-overlay {
+            background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        .book-card:hover .book-card-overlay {
+            opacity: 1;
+        }
+        .book-card img {
+            transition: all 0.5s ease;
+        }
+        .book-card:hover img {
+            transform: scale(1.1);
+        }
+        .nav-link {
+            position: relative;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 0;
+            background-color: #0E9F6E;
+            transition: width 0.3s ease;
+        }
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        .floating {
+            animation: float 6s ease-in-out infinite;
+        }
+        .floating-slow {
+            animation: float 8s ease-in-out infinite;
+        }
+        .floating-fast {
+            animation: float 4s ease-in-out infinite;
+        }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0px); }
+        }
+        .bg-dots {
+            background-image: radial-gradient(#e5e7eb 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .bg-blur {
+            backdrop-filter: blur(8px);
+        }
+        .scale-up-hover {
+            transition: transform 0.3s ease;
+        }
+        .scale-up-hover:hover {
+            transform: scale(1.05);
+        }
+        /* Glow animation */
+        .glow {
+            animation: glow 3s ease-in-out infinite alternate;
+        }
+        @keyframes glow {
+            from {
+                box-shadow: 0 0 10px -10px rgba(14, 159, 110, 0.8);
+            }
+            to {
+                box-shadow: 0 0 20px 5px rgba(14, 159, 110, 0.8);
+            }
+        }
+        /* Rotate animation */
+        .rotate-slow {
+            animation: rotate 15s linear infinite;
+        }
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        /* Pulse animation */
+        .pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.7;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-dark-800 font-sans">
+    <!-- Header with Glassmorphism -->
+    <header class="fixed w-full z-50 transition-all duration-300" id="navbar">
+        <div class="bg-white/80 backdrop-blur-lg shadow-sm border-b border-gray-100">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between h-20">
+                    <!-- Logo -->
+                    <div class="flex-shrink-0">
+                        <a href="{% url 'pgAcc_index' %}" class="flex items-center">
+                            <div class="relative mr-3">
+                                <div class="absolute inset-0 bg-gradient-to-r from-teal-400 to-purple-500 rounded-lg blur opacity-70"></div>
+                                <div class="relative bg-white rounded-lg p-2">
+                                    <i class="fas fa-book-open text-teal-500 text-2xl"></i>
+                                </div>
+                            </div>
+                            <span class="text-2xl font-bold text-dark-800 hover:text-teal-600 transition duration-300">Biblio<span class="text-teal-500">Smart</span></span>
+                        </a>
+                    </div>
+                    
+                    <!-- Desktop Menu -->
+                    <div class="hidden md:flex items-center space-x-8">
+                        <a href="#features" class="text-dark-600 hover:text-teal-500 transition duration-300 nav-link">Features</a>
+                        <a href="#collection" class="text-dark-600 hover:text-teal-500 transition duration-300 nav-link">Collection</a>
+                        <a href="#testimonials" class="text-dark-600 hover:text-teal-500 transition duration-300 nav-link">Testimonials</a>
+                        
+                        {% if request.session.utilisateur_id %}
+                            <a href="{% url 'dashboard' %}" class="text-dark-600 hover:text-teal-500 transition duration-300 flex items-center">
+                                <i class="fas fa-columns mr-2"></i>Dashboard
+                            </a>
+                            <a href="{% url 'books' %}" class="text-dark-600 hover:text-teal-500 transition duration-300 flex items-center">
+                                <i class="fas fa-book mr-2"></i>Books
+                            </a>
+                            <a href="{% url 'logout' %}" class="bg-gray-100 hover:bg-gray-200 text-dark-700 px-5 py-2 rounded-full font-medium transition duration-300 flex items-center">
+                                <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                            </a>
+                        {% else %}
+                            <a href="{% url 'connexion' %}" class="text-dark-700 font-medium hover:text-teal-500 transition duration-300">Sign In</a>
+                            <a href="{% url 'inscription' %}" class="bg-gradient-to-r from-teal-500 to-teal-600 text-white px-5 py-2 rounded-full font-medium hover:shadow-glow transition duration-300 animate__animated animate__fadeIn">Sign Up Free</a>
+                        {% endif %}
+                    </div>
+
+                    <!-- Mobile Menu Button -->
+                    <div class="md:hidden">
+                        <button id="mobile-menu-button" class="text-dark-600 hover:text-teal-500 focus:outline-none">
+                            <i class="fas fa-bars text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white/95 backdrop-blur-lg border-b border-gray-100 shadow-lg animate__animated animate__fadeIn">
+            <div class="py-3 space-y-1">
+                <a href="#features" class="block px-4 py-3 text-dark-600 hover:bg-teal-50 hover:text-teal-500 transition duration-300">
+                    <i class="fas fa-star mr-2"></i>Features
+                </a>
+                <a href="#collection" class="block px-4 py-3 text-dark-600 hover:bg-teal-50 hover:text-teal-500 transition duration-300">
+                    <i class="fas fa-book mr-2"></i>Collection
+                </a>
+                <a href="#testimonials" class="block px-4 py-3 text-dark-600 hover:bg-teal-50 hover:text-teal-500 transition duration-300">
+                    <i class="fas fa-quote-right mr-2"></i>Testimonials
+                </a>
+                
+                {% if request.session.utilisateur_id %}
+                    <a href="{% url 'dashboard' %}" class="block px-4 py-3 text-dark-600 hover:bg-teal-50 hover:text-teal-500 transition duration-300">
+                        <i class="fas fa-columns mr-2"></i>Dashboard
+                    </a>
+                    <a href="{% url 'books' %}" class="block px-4 py-3 text-dark-600 hover:bg-teal-50 hover:text-teal-500 transition duration-300">
+                        <i class="fas fa-book mr-2"></i>Books
+                    </a>
+                    <a href="{% url 'logout' %}" class="block px-4 py-3 text-dark-600 hover:bg-teal-50 hover:text-teal-500 transition duration-300">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                    </a>
+                {% else %}
+                    <a href="{% url 'connexion' %}" class="block px-4 py-3 text-dark-600 hover:bg-teal-50 hover:text-teal-500 transition duration-300">
+                        <i class="fas fa-sign-in-alt mr-2"></i>Sign In
+                    </a>
+                    <div class="px-4 py-3">
+                        <a href="{% url 'inscription' %}" class="block w-full text-center bg-gradient-to-r from-teal-500 to-teal-600 text-white px-5 py-3 rounded-full font-medium hover:shadow-glow transition duration-300">
+                            <i class="fas fa-user-plus mr-2"></i>Sign Up Free
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Hero Section with 3D Elements -->
+        <section class="pt-32 pb-20 overflow-hidden relative bg-gradient-to-br from-teal-50 to-purple-50">
+            <div class="absolute top-0 right-0 w-full h-full bg-dots opacity-50 z-0"></div>
+            
+            <!-- Floating Elements -->
+            <div class="absolute top-20 right-20 w-32 h-32 bg-purple-300/20 rounded-full blur-3xl floating-slow"></div>
+            <div class="absolute bottom-20 left-20 w-40 h-40 bg-teal-300/20 rounded-full blur-3xl floating"></div>
+            <div class="absolute top-40 left-1/4 w-20 h-20 bg-yellow-300/20 rounded-full blur-3xl floating-fast"></div>
+            
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <div class="flex flex-col lg:flex-row items-center">
+                    <!-- Left Content -->
+                    <div class="w-full lg:w-1/2 mb-10 lg:mb-0 animate__animated animate__fadeInLeft">
+                        <div class="inline-block px-3 py-1 bg-teal-100 text-teal-600 rounded-full text-sm font-medium mb-6">
+                            <span class="flex items-center">
+                                <span class="w-2 h-2 bg-teal-500 rounded-full mr-2 pulse"></span>
+                                Modern Library Management System
+                            </span>
+                        </div>
+                        <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight font-display">
+                            <span class="text-dark-800">Discover Your </span>
+                            <span class="text-transparent bg-clip-text bg-gradient-to-r from-teal-500 to-purple-600">Next Great</span>
+                            <span class="text-dark-800"> Reading Adventure</span>
+                        </h1>
+                        <p class="text-lg text-dark-600 mb-8 max-w-lg">
+                            BiblioSmart revolutionizes how you discover, borrow, and manage books with an intuitive digital experience designed for modern readers.
+                        </p>
+                        <div class="flex flex-wrap gap-4">
+                            <a href="#collection" 
+                            class="px-8 py-4 bg-gradient-to-r from-teal-500 to-teal-600 text-white rounded-full font-medium hover:shadow-glow transition duration-300 flex items-center scale-up-hover">
+                                <i class="fas fa-book-open mr-2"></i> Explore Collection
+                            </a>
+                            {% if not request.session.utilisateur_id %}
+                            <a href="{% url 'connexion' %}" 
+                            class="px-8 py-4 bg-white border border-gray-200 text-dark-700 rounded-full font-medium hover:border-teal-500 hover:text-teal-500 transition duration-300 flex items-center scale-up-hover">
+                                <i class="fas fa-sign-in-alt mr-2"></i> Sign In
+                            </a>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Stats in Cards -->
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-12">
+                            <div class="bg-white/90 backdrop-blur rounded-2xl p-4 shadow-soft text-center card-hover">
+                                <p class="text-2xl font-bold text-teal-500 mb-1 counter">{{ stats.total_books }}</p>
+                                <p class="text-dark-500 text-sm">Books Available</p>
+                            </div>
+                            <div class="bg-white/90 backdrop-blur rounded-2xl p-4 shadow-soft text-center card-hover">
+                                <p class="text-2xl font-bold text-purple-500 mb-1 counter">{{ stats.total_users }}</p>
+                                <p class="text-dark-500 text-sm">Active Members</p>
+                            </div>
+                            <div class="bg-white/90 backdrop-blur rounded-2xl p-4 shadow-soft text-center card-hover">
+                                <p class="text-2xl font-bold text-teal-500 mb-1 counter">{{ stats.total_borrowed }}</p>
+                                <p class="text-dark-500 text-sm">Books Borrowed</p>
+                            </div>
+                            <div class="bg-white/90 backdrop-blur rounded-2xl p-4 shadow-soft text-center card-hover">
+                                <p class="text-2xl font-bold text-purple-500 mb-1 counter">{{ stats.categories }}</p>
+                                <p class="text-dark-500 text-sm">Categories</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Right Hero Image -->
+                    <div class="w-full lg:w-1/2 relative animate__animated animate__fadeInRight">
+                        <div class="relative">
+                            <!-- Circle Background -->
+                            <div class="absolute -top-10 -right-10 w-72 h-72 bg-gradient-to-r from-teal-300/30 to-purple-300/30 rounded-full blur-xl"></div>
+                            
+                            <!-- Main Hero Image -->
+                            <div class="relative rounded-2xl overflow-hidden border-8 border-white shadow-card">
+                                <img src="https://images.unsplash.com/photo-1507842217343-583bb7270b66?ixlib=rb-1.2.1&auto=format&fit=crop&w=2000&q=80" 
+                                    alt="Modern Library" 
+                                    class="w-full h-[500px] lg:h-[600px] object-cover">
+                                <div class="absolute inset-0 bg-gradient-to-t from-teal-900/80 to-transparent"></div>
+                                
+                                <!-- Floating Book Cards -->
+                                <div class="absolute -right-20 top-20 w-64 transform rotate-6 floating-slow shadow-lg">
+                                    <div class="bg-white rounded-lg p-3 shadow-card">
+                                        <div class="bg-gray-200 h-40 rounded-lg mb-3 overflow-hidden">
+                                            <img src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" class="w-full h-full object-cover" alt="Book">
+                                        </div>
+                                        <h3 class="font-medium text-dark-800 mb-1 truncate">The Great Gatsby</h3>
+                                        <p class="text-sm text-dark-500">F. Scott Fitzgerald</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="absolute -left-16 bottom-32 w-56 transform -rotate-6 floating shadow-lg">
+                                    <div class="bg-white rounded-lg p-3 shadow-card">
+                                        <div class="bg-gray-200 h-36 rounded-lg mb-3 overflow-hidden">
+                                            <img src="https://images.unsplash.com/photo-1543002588-bfa74002ed7e?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" class="w-full h-full object-cover" alt="Book">
+                                        </div>
+                                        <h3 class="font-medium text-dark-800 mb-1 truncate">Pride and Prejudice</h3>
+                                        <p class="text-sm text-dark-500">Jane Austen</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Wave Separator -->
+                <div class="w-full h-24 mt-16">
+                    <svg viewBox="0 0 1200 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
+                        <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" fill="#ffffff"></path>
+                    </svg>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section id="features" class="py-20 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-16 animate__animated animate__fadeIn">
+                    <h2 class="text-3xl md:text-4xl font-bold mb-4 font-display">Why Choose <span class="text-teal-500">BiblioSmart</span></h2>
+                    <p class="text-lg text-dark-500 max-w-2xl mx-auto">Our platform combines cutting-edge technology with user-friendly design to create the ultimate library management experience.</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+                    <div class="bg-gradient-to-br from-white to-teal-50 p-8 rounded-2xl shadow-card card-hover animate__animated animate__fadeInUp" style="animation-delay: 0.1s">
+                        <div class="w-16 h-16 bg-teal-100 rounded-2xl flex items-center justify-center mb-6 rotate-slow">
+                            <i class="fas fa-book text-teal-500 text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3 text-dark-800">Diverse Collection</h3>
+                        <p class="text-dark-500 leading-relaxed">Access thousands of books across multiple genres, from classic literature to contemporary bestsellers, all in one place.</p>
+                        <div class="mt-6">
+                            <a href="{% url 'books' %}" class="inline-flex items-center text-teal-500 font-medium hover:text-teal-600 group">
+                                Explore books 
+                                <i class="fas fa-arrow-right ml-2 transform group-hover:translate-x-1 transition-transform"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="bg-gradient-to-br from-white to-purple-50 p-8 rounded-2xl shadow-card card-hover animate__animated animate__fadeInUp" style="animation-delay: 0.2s">
+                        <div class="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center mb-6 rotate-slow">
+                            <i class="fas fa-mobile-alt text-purple-500 text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3 text-dark-800">Easy Management</h3>
+                        <p class="text-dark-500 leading-relaxed">Manage your loans, track due dates, and discover new books with our intuitive interface that works on any device.</p>
+                        <div class="mt-6">
+                            <a href="{% url 'dashboard' %}" class="inline-flex items-center text-purple-500 font-medium hover:text-purple-600 group">
+                                View dashboard
+                                <i class="fas fa-arrow-right ml-2 transform group-hover:translate-x-1 transition-transform"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="bg-gradient-to-br from-white to-teal-50 p-8 rounded-2xl shadow-card card-hover animate__animated animate__fadeInUp" style="animation-delay: 0.3s">
+                        <div class="w-16 h-16 bg-teal-100 rounded-2xl flex items-center justify-center mb-6 rotate-slow">
+                            <i class="fas fa-bell text-teal-500 text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3 text-dark-800">Smart Notifications</h3>
+                        <p class="text-dark-500 leading-relaxed">Never miss a return date again with our automated notification system that keeps you informed about your loans.</p>
+                        <div class="mt-6">
+                            <a href="{% url 'connexion' %}" class="inline-flex items-center text-teal-500 font-medium hover:text-teal-600 group">
+                                Get started
+                                <i class="fas fa-arrow-right ml-2 transform group-hover:translate-x-1 transition-transform"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Featured Collection -->
+        <section id="collection" class="py-20 bg-gray-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex flex-col md:flex-row md:items-end md:justify-between mb-12">
+                    <div class="animate__animated animate__fadeIn">
+                        <h2 class="text-3xl md:text-4xl font-bold mb-4 font-display">Featured <span class="text-teal-500">Collection</span></h2>
+                        <p class="text-lg text-dark-500 max-w-2xl">Discover our handpicked selection of must-read books across various genres.</p>
+                    </div>
+                    <a href="{% url 'books' %}" class="mt-4 md:mt-0 inline-flex items-center text-teal-500 font-medium hover:text-teal-600 group animate__animated animate__fadeIn">
+                        View all books
+                        <i class="fas fa-arrow-right ml-2 transform group-hover:translate-x-1 transition-transform"></i>
+                    </a>
+                </div>
+                
+                <!-- Featured Books -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8">
+                    {% for book in featured_books %}
+                    <div class="bg-white rounded-xl shadow-sm overflow-hidden book-card animate__animated animate__fadeInUp" style="animation-delay: {{ forloop.counter|add:'-1' }}00ms">
+                        <div class="relative aspect-[3/4] overflow-hidden">
+                            {% if book.image %}
+                            <img src="{{ book.image.url }}" alt="{{ book.titre }}" class="w-full h-full object-cover">
+                            {% else %}
+                            <div class="w-full h-full bg-gray-200 flex items-center justify-center">
+                                <i class="fas fa-book text-gray-400 text-4xl"></i>
+                            </div>
+                            {% endif %}
+                            <div class="book-card-overlay absolute inset-0 flex items-center justify-center">
+                                <a href="{% url 'book_detail' book.id %}" class="px-4 py-2 bg-white/90 backdrop-blur text-dark-700 rounded-lg font-medium transform transition hover:scale-105">
+                                    View Details
+                                </a>
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <h3 class="font-bold text-dark-800 mb-1 truncate">{{ book.titre }}</h3>
+                            <p class="text-sm text-dark-500 mb-2">{{ book.auteur }}</p>
+                            <div class="flex items-center justify-between">
+                                <span class="px-2 py-1 bg-{% if book.disponibilite %}green-100 text-green-800{% else %}red-100 text-red-800{% endif %} text-xs rounded-full">
+                                    {% if book.disponibilite %}Available{% else %}Checked Out{% endif %}
+                                </span>
+                                <span class="text-xs text-dark-400">{{ book.categorie }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-span-full text-center py-12">
+                        <div class="bg-teal-50 p-6 rounded-xl inline-block mb-4">
+                            <i class="fas fa-book text-teal-500 text-3xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-dark-800 mb-2">No Featured Books Available</h3>
+                        <p class="text-dark-500">Check back later for our curated book recommendations.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Most Borrowed Books -->
+                <div class="mt-20">
+                    <div class="flex flex-col md:flex-row md:items-end md:justify-between mb-12">
+                        <div class="animate__animated animate__fadeIn">
+                            <h2 class="text-3xl md:text-4xl font-bold mb-4 font-display">Most <span class="text-purple-500">Borrowed</span></h2>
+                            <p class="text-lg text-dark-500 max-w-2xl">The most popular books among our readers.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                        {% for book in most_borrowed_books|slice:":4" %}
+                        <div class="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300 animate__animated animate__fadeInUp" style="animation-delay: {{ forloop.counter|add:'-1' }}00ms">
+                            <div class="relative">
+                                <div class="absolute top-0 right-0 m-2 w-8 h-8 bg-purple-500 text-white rounded-full flex items-center justify-center font-bold text-sm">
+                                    #{{ forloop.counter }}
+                                </div>
+                                <div class="h-48 overflow-hidden">
+                                    {% if book.image %}
+                                    <img src="{{ book.image.url }}" alt="{{ book.titre }}" class="w-full h-full object-cover">
+                                    {% else %}
+                                    <div class="w-full h-full bg-gray-200 flex items-center justify-center">
+                                        <i class="fas fa-book text-gray-400 text-4xl"></i>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="p-4">
+                                <h3 class="font-bold text-dark-800 mb-1 truncate">{{ book.titre }}</h3>
+                                <p class="text-sm text-dark-500 mb-3">{{ book.auteur }}</p>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-xs text-purple-600 font-medium">{{ book.borrow_count }} borrows</span>
+                                    <a href="{% url 'book_detail' book.id %}" class="text-sm text-purple-500 hover:text-purple-700">View Details →</a>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-span-full text-center py-12">
+                            <div class="bg-purple-50 p-6 rounded-xl inline-block mb-4">
+                                <i class="fas fa-chart-bar text-purple-500 text-3xl"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-dark-800 mb-2">No Borrowing Data Available</h3>
+                            <p class="text-dark-500">Statistics will appear once members start borrowing books.</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Categories -->
+                <div class="mt-20">
+                    <div class="flex flex-col md:flex-row md:items-end md:justify-between mb-12">
+                        <div class="animate__animated animate__fadeIn">
+                            <h2 class="text-3xl md:text-4xl font-bold mb-4 font-display">Browse by <span class="text-teal-500">Category</span></h2>
+                            <p class="text-lg text-dark-500 max-w-2xl">Find your next great read by exploring our diverse categories.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6">
+                        {% for category in categories %}
+                        <a href="{% url 'books' %}?category={{ category.name }}" class="group">
+                            <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 p-6 text-center animate__animated animate__fadeInUp" style="animation-delay: {{ forloop.counter|add:'-1' }}00ms">
+                                <div class="w-12 h-12 mx-auto mb-4 rounded-full bg-teal-100 text-teal-500 flex items-center justify-center group-hover:bg-teal-500 group-hover:text-white transition-colors">
+                                    <i class="{{ category.icon }} text-xl"></i>
+                                </div>
+                                <h3 class="font-bold text-dark-800 group-hover:text-teal-500 transition-colors">{{ category.name }}</h3>
+                                <p class="text-sm text-dark-500 mt-1">{{ category.count }} books</p>
+                            </div>
+                        </a>
+                        {% empty %}
+                        <div class="col-span-full text-center py-12">
+                            <div class="bg-teal-50 p-6 rounded-xl inline-block mb-4">
+                                <i class="fas fa-tags text-teal-500 text-3xl"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-dark-800 mb-2">No Categories Available</h3>
+                            <p class="text-dark-500">Check back later for categorized book collections.</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Testimonials -->
+        <section id="testimonials" class="py-20 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-16 animate__animated animate__fadeIn">
+                    <h2 class="text-3xl md:text-4xl font-bold mb-4 font-display">What Our <span class="text-purple-500">Members</span> Say</h2>
+                    <p class="text-lg text-dark-500 max-w-2xl mx-auto">Hear from our community about their experience with BiblioSmart.</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    {% for testimonial in testimonials %}
+                    <div class="bg-gradient-to-br from-white to-gray-50 p-8 rounded-2xl shadow-card card-hover animate__animated animate__fadeInUp" style="animation-delay: {{ forloop.counter|add:'-1' }}00ms">
+                        <div class="flex items-center mb-6">
+                            <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mr-4">
+                                <span class="text-xl font-bold text-purple-500">{{ testimonial.name|slice:":1" }}</span>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-dark-800">{{ testimonial.name }}</h3>
+                                <p class="text-sm text-dark-500">Member since {{ testimonial.member_since }}</p>
+                            </div>
+                        </div>
+                        <div class="text-yellow-400 mb-4">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= testimonial.rating %}
+                                    <i class="fas fa-star"></i>
+                                {% else %}
+                                    <i class="far fa-star"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <p class="text-dark-600 italic leading-relaxed">"{{ testimonial.text }}"</p>
+                    </div>
+                    {% empty %}
+                    <div class="col-span-3 text-center py-12">
+                        <div class="bg-purple-50 p-6 rounded-xl inline-block mb-4">
+                            <i class="fas fa-quote-right text-purple-500 text-3xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-dark-800 mb-2">No Testimonials Available</h3>
+                        <p class="text-dark-500">Be the first to share your experience with BiblioSmart.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+        
+        <!-- Call to Action -->
+        <section class="py-20 bg-gradient-to-br from-teal-500 to-purple-600 text-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h2 class="text-3xl md:text-4xl font-bold mb-6 animate__animated animate__fadeIn">Start Your Reading Journey Today</h2>
+                <p class="text-lg text-teal-100 max-w-2xl mx-auto mb-10 animate__animated animate__fadeIn" style="animation-delay: 100ms">Join thousands of readers who've discovered their next favorite book with BiblioSmart.</p>
+                <div class="flex flex-wrap justify-center gap-4 animate__animated animate__fadeIn" style="animation-delay: 200ms">
+                    <a href="{% url 'books' %}" class="px-8 py-4 bg-white text-teal-600 rounded-full font-medium hover:bg-teal-50 transition duration-300 flex items-center">
+                        <i class="fas fa-book-open mr-2"></i> Browse Books
+                    </a>
+                    {% if not request.session.utilisateur_id %}
+                    <a href="{% url 'inscription' %}" class="px-8 py-4 bg-transparent border-2 border-white text-white rounded-full font-medium hover:bg-white/10 transition duration-300 flex items-center">
+                        <i class="fas fa-user-plus mr-2"></i> Create Account
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-dark-800 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <div class="flex items-center mb-6">
+                        <div class="relative mr-3">
+                            <div class="absolute inset-0 bg-gradient-to-r from-teal-400 to-purple-500 rounded-lg blur opacity-70"></div>
+                            <div class="relative bg-dark-800 rounded-lg p-2">
+                                <i class="fas fa-book-open text-teal-500 text-2xl"></i>
+                            </div>
+                        </div>
+                        <span class="text-2xl font-bold">Biblio<span class="text-teal-500">Smart</span></span>
+                    </div>
+                    <p class="text-gray-400 mb-6">Modern library management system designed for readers and libraries of all sizes.</p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-teal-500 transition duration-300">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-teal-500 transition duration-300">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-teal-500 transition duration-300">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Quick Links</h3>
+                    <ul class="space-y-2">
+                        <li><a href="{% url 'books' %}" class="text-gray-400 hover:text-white transition duration-300">Books</a></li>
+                        <li><a href="#features" class="text-gray-400 hover:text-white transition duration-300">Features</a></li>
+                        <li><a href="#collection" class="text-gray-400 hover:text-white transition duration-300">Collection</a></li>
+                        <li><a href="#testimonials" class="text-gray-400 hover:text-white transition duration-300">Testimonials</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Contact</h3>
+                    <ul class="space-y-2 text-gray-400">
+                        <li class="flex items-start">
+                            <i class="fas fa-map-marker-alt mt-1 mr-2 text-teal-500"></i>
+                            <span>123 Library Street, Booktown, BK 12345</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-phone mr-2 text-teal-500"></i>
+                            <span>(123) 456-7890</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-envelope mr-2 text-teal-500"></i>
+                            <span>info@bibliosmart.com</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Hours</h3>
+                    <ul class="space-y-2 text-gray-400">
+                        <li class="flex justify-between">
+                            <span>Monday - Friday:</span>
+                            <span>9:00 AM - 8:00 PM</span>
+                        </li>
+                        <li class="flex justify-between">
+                            <span>Saturday:</span>
+                            <span>10:00 AM - 6:00 PM</span>
+                        </li>
+                        <li class="flex justify-between">
+                            <span>Sunday:</span>
+                            <span>Closed</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row md:justify-between items-center">
+                <p class="text-gray-500 mb-4 md:mb-0">&copy; 2025 BiblioSmart. All rights reserved.</p>
+                <div class="flex space-x-6">
+                    <a href="#" class="text-gray-500 hover:text-white transition duration-300">Privacy Policy</a>
+                    <a href="#" class="text-gray-500 hover:text-white transition duration-300">Terms of Service</a>
+                    <a href="#" class="text-gray-500 hover:text-white transition duration-300">Cookie Policy</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile menu toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            
+            mobileMenuButton.addEventListener('click', function() {
+                mobileMenu.classList.toggle('hidden');
+            });
+            
+            // Navbar scroll effect
+            const navbar = document.getElementById('navbar');
+            window.addEventListener('scroll', function() {
+                if (window.scrollY > 20) {
+                    navbar.classList.add('shadow-md');
+                    navbar.classList.remove('shadow-sm');
+                } else {
+                    navbar.classList.remove('shadow-md');
+                    navbar.classList.add('shadow-sm');
+                }
+            });
+            
+            // Counter animation
+            const counters = document.querySelectorAll('.counter');
+            counters.forEach(counter => {
+                const target = +counter.innerText;
+                const duration = 1500;
+                const increment = target / duration * 10; // 10ms intervals
+                
+                let current = 0;
+                const timer = setInterval(() => {
+                    current += increment;
+                    counter.innerText = Math.floor(current);
+                    
+                    if (current >= target) {
+                        counter.innerText = target;
+                        clearInterval(timer);
+                    }
+                }, 10);
+            });
+        });
+    </script>
+</body>
+</html>
