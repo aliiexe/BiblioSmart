@@ -26,12 +26,7 @@ SECRET_KEY = 'django-insecure-$$clu$0(v#u!hj8o83n6sjab&v#80n5c+_vnciypj1pu&$$w!d
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [
-    "web-production-ba59d.up.railway.app",
-    "0.0.0.0",      # for Uvicorn binding (not strictly needed in prod)
-    "127.0.0.1",    # local tests
-    "localhost",    # Add this line
-]
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
