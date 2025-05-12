@@ -23,6 +23,25 @@
                 <div class="grid md:grid-cols-2 gap-6">
                     <!-- Left Column -->
                     <div class="space-y-6">
+                        <!-- Add this inside your form, before or after the ISBN field -->
+                        <div class="mb-6 border border-gray-200 rounded-lg p-4 bg-gray-50">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-barcode mr-2"></i> Scan Book Barcode
+                            </label>
+                            <div id="reader" class="w-full max-w-md h-64 mx-auto bg-white rounded-lg"></div>
+                            <div class="flex justify-center mt-3">
+                                <button type="button" id="start-scanner" 
+                                        class="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition duration-300">
+                                    <i class="fas fa-camera mr-2"></i> Start Scanner
+                                </button>
+                                <button type="button" id="stop-scanner" 
+                                        class="px-4 py-2 ml-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition duration-300 hidden">
+                                    <i class="fas fa-stop mr-2"></i> Stop Scanner
+                                </button>
+                            </div>
+                            <p class="text-sm text-gray-500 mt-2 text-center">Position the barcode inside the scanner area</p>
+                            <div id="scan-status" class="text-center mt-2"></div>
+                        </div>
                         <!-- Title -->
                         <div>
                             <label for="titre" class="block text-sm font-medium text-gray-700 mb-1">Title *</label>
@@ -46,6 +65,7 @@
                                    value="{% if book %}{{ book.ISBN }}{% endif %}"
                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-transparent">
                         </div>
+                        
                         
                         <!-- Category -->
                         <div>
@@ -109,6 +129,7 @@
                     <div class="space-y-6">
                         <!-- Cover Image -->
                         <div>
+                            <input type="hidden" name="cover_image_url" id="cover-image-url">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Cover Image</label>
                             <div class="mt-1 flex flex-col items-center">
                                 <div class="w-full max-w-xs mb-4">
@@ -164,47 +185,46 @@
         </div>
     </div>
 </div>
-
+{% endblock %}
 {% block extra_js %}
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const imageInput = document.getElementById('image');
-        const uploadButton = document.getElementById('upload-button');
-        const imagePreview = document.getElementById('image-preview');
-        const previewImage = document.getElementById('preview-image');
-        const uploadPrompt = document.getElementById('upload-prompt');
-        
-        // Trigger file input when upload button is clicked
-        uploadButton.addEventListener('click', function() {
-            imageInput.click();
-        });
-        
-        // Preview the selected image
-        imageInput.addEventListener('change', function() {
-            if (this.files && this.files[0]) {
-                const reader = new FileReader();
-                
-                reader.onload = function(e) {
-                    previewImage.src = e.target.result;
-                    previewImage.classList.remove('hidden');
-                    if (uploadPrompt) {
-                        uploadPrompt.classList.add('hidden');
-                    }
-                };
-                
-                reader.readAsDataURL(this.files[0]);
-            }
-        });
-        
-        // Drag and drop functionality
+    // Enhanced version with better barcode detection
+document.addEventListener('DOMContentLoaded', function() {
+    // Image upload functionality (unchanged)
+    const imageInput = document.getElementById('image');
+    const uploadButton = document.getElementById('upload-button');
+    const imagePreview = document.getElementById('image-preview');
+    const previewImage = document.getElementById('preview-image');
+    const uploadPrompt = document.getElementById('upload-prompt');
+    
+    // Trigger file input when upload button is clicked
+    uploadButton?.addEventListener('click', function() {
+        imageInput.click();
+    });
+    
+    // Preview the selected image
+    imageInput?.addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                previewImage.src = e.target.result;
+                previewImage.classList.remove('hidden');
+                if (uploadPrompt) {
+                    uploadPrompt.classList.add('hidden');
+                }
+            };
+            
+            reader.readAsDataURL(this.files[0]);
+        }
+    });
+    
+    // Drag and drop functionality (unchanged)
+    if (imagePreview) {
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
             imagePreview.addEventListener(eventName, preventDefaults, false);
         });
-        
-        function preventDefaults(e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
         
         ['dragenter', 'dragover'].forEach(eventName => {
             imagePreview.addEventListener(eventName, highlight, false);
@@ -214,37 +234,507 @@
             imagePreview.addEventListener(eventName, unhighlight, false);
         });
         
-        function highlight() {
-            imagePreview.classList.add('border-gray-500', 'bg-gray-50');
-        }
-        
-        function unhighlight() {
-            imagePreview.classList.remove('border-gray-500', 'bg-gray-50');
-        }
-        
         imagePreview.addEventListener('drop', handleDrop, false);
+    }
+    
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    
+    function highlight() {
+        imagePreview.classList.add('border-gray-500', 'bg-gray-50');
+    }
+    
+    function unhighlight() {
+        imagePreview.classList.remove('border-gray-500', 'bg-gray-50');
+    }
+    
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
         
-        function handleDrop(e) {
-            const dt = e.dataTransfer;
-            const files = dt.files;
+        if (files && files[0]) {
+            imageInput.files = files;
             
-            if (files && files[0]) {
-                imageInput.files = files;
-                
-                const reader = new FileReader();
-                
-                reader.onload = function(e) {
-                    previewImage.src = e.target.result;
-                    previewImage.classList.remove('hidden');
-                    if (uploadPrompt) {
-                        uploadPrompt.classList.add('hidden');
-                    }
-                };
-                
-                reader.readAsDataURL(files[0]);
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                previewImage.src = e.target.result;
+                previewImage.classList.remove('hidden');
+                if (uploadPrompt) {
+                    uploadPrompt.classList.add('hidden');
+                }
+            };
+            
+            reader.readAsDataURL(files[0]);
+        }
+    }
+
+    // ---- IMPROVED BARCODE SCANNER FUNCTIONALITY ----
+    // Global variables for scanner
+    let html5QrCode = null;
+    const startButton = document.getElementById("start-scanner");
+    const stopButton = document.getElementById("stop-scanner");
+    const scanStatus = document.getElementById("scan-status");
+    const readerElement = document.getElementById("reader");
+    
+    let scanning = false;
+    let lastResult = null;
+    let lastResultTime = 0;
+    
+    // Debug function to help identify issues
+    function debug(message, isError = false) {
+        console.log(message);
+        if (isError) {
+            console.error(message);
+        }
+    }
+    
+    // Initialize the scanner object
+    try {
+        if (readerElement) {
+            html5QrCode = new Html5Qrcode("reader");
+            debug("Scanner initialized successfully");
+        } else {
+            debug("Reader element not found", true);
+        }
+    } catch (err) {
+        debug("Failed to initialize scanner: " + err.message, true);
+        if (scanStatus) {
+            scanStatus.innerHTML = `<span class="text-red-600">Failed to initialize scanner: ${err.message}</span>`;
+        }
+    }
+    
+    // Populate camera sources
+    function populateCameraSources() {
+        // First check if camera access is supported
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            debug("Camera access not supported", true);
+            if (scanStatus) {
+                scanStatus.innerHTML = '<span class="text-red-600">Camera access is not supported in your browser. Please try a different browser.</span>';
             }
+            return;
+        }
+        
+        Html5Qrcode.getCameras()
+            .then(devices => {
+                debug(`Found ${devices.length} cameras`);
+                if (devices && devices.length) {
+                    // Create camera select if at least one camera
+                    const cameraSelectContainer = document.createElement('div');
+                    cameraSelectContainer.className = 'mb-2';
+                    
+                    const label = document.createElement('label');
+                    label.htmlFor = 'camera-select';
+                    label.className = 'block text-sm font-medium text-gray-700 mb-1';
+                    label.textContent = 'Select Camera';
+                    
+                    const cameraSelect = document.createElement('select');
+                    cameraSelect.id = 'camera-select';
+                    cameraSelect.className = 'w-full px-3 py-2 my-2 rounded-md border border-gray-300';
+                    
+                    devices.forEach((device, index) => {
+                        debug(`Camera ${index}: ${device.id} - ${device.label || 'unnamed'}`);
+                        const option = document.createElement('option');
+                        option.value = device.id;
+                        option.text = device.label || `Camera ${index + 1}` + (index === 0 ? ' (Default)' : '');
+                        cameraSelect.appendChild(option);
+                    });
+                    
+                    cameraSelectContainer.appendChild(label);
+                    cameraSelectContainer.appendChild(cameraSelect);
+                    
+                    if (readerElement) {
+                        const readerParent = readerElement.parentNode;
+                        const existingSelect = document.getElementById('camera-select');
+                        
+                        if (existingSelect) {
+                            readerParent.removeChild(existingSelect.parentNode);
+                        }
+                        
+                        readerParent.insertBefore(cameraSelectContainer, readerElement);
+                    }
+                    
+                    if (scanStatus) {
+                        scanStatus.innerHTML = '<span class="text-green-600">Camera detected - Ready to scan</span>';
+                    }
+                } else {
+                    debug("No cameras found", true);
+                    if (scanStatus) {
+                        scanStatus.innerHTML = '<span class="text-red-600">No cameras found. Please check your camera permissions.</span>';
+                    }
+                }
+            })
+            .catch(err => {
+                debug("Error getting cameras: " + err.message, true);
+                if (scanStatus) {
+                    scanStatus.innerHTML = `<span class="text-red-600">Error accessing cameras: ${err.message}</span>`;
+                }
+            });
+    }
+    
+    // Call function to populate camera sources when page loads
+    populateCameraSources();
+    
+    // Manual ISBN input handler
+    const isbnInput = document.getElementById("isbn");
+    if (isbnInput) {
+        let typingTimer;
+        
+        // Debounce function to prevent excessive API calls
+        function debounceFetch(isbn) {
+            clearTimeout(typingTimer);
+            typingTimer = setTimeout(() => {
+                // Remove any non-digit characters (except X for ISBN-10 check digit)
+                const cleanIsbn = isbn.replace(/[^0-9X]/g, '');
+                
+                // Check if valid ISBN length
+                if (cleanIsbn.length === 10 || cleanIsbn.length === 13) {
+                    if (scanStatus) {
+                        scanStatus.innerHTML = '<span class="text-blue-600">Checking ISBN...</span>';
+                    }
+                    fetchBookDetails(cleanIsbn);
+                }
+            }, 800); // Wait 800ms after typing stops
+        }
+        
+        // Listen for input events (as user types)
+        isbnInput.addEventListener("input", function() {
+            const isbn = this.value.trim();
+            if (isbn.length >= 10) {
+                debounceFetch(isbn);
+            }
+        });
+        
+        // Keep the change event for pasted values
+        isbnInput.addEventListener("change", function() {
+            const isbn = this.value.trim();
+            // Only fire if we haven't recently processed via input event
+            if ((isbn.length === 10 || isbn.length === 13 || isbn.includes('-')) && !typingTimer) {
+                debounceFetch(isbn);
+            }
+        });
+    }
+    
+    // Start scanning on button click
+    startButton?.addEventListener("click", function() {
+        if (!html5QrCode) {
+            debug("Scanner not initialized", true);
+            if (scanStatus) {
+                scanStatus.innerHTML = '<span class="text-red-600">Scanner not initialized. Please refresh the page.</span>';
+            }
+            return;
+        }
+        
+        if (scanning) {
+            return;
+        }
+        
+        // Get selected camera or use environment camera (back camera)
+        let cameraId;
+        const cameraSelect = document.getElementById('camera-select');
+        
+        if (cameraSelect && cameraSelect.value) {
+            cameraId = cameraSelect.value;
+            debug(`Using selected camera: ${cameraId}`);
+        } else {
+            cameraId = { facingMode: "environment" };
+            debug("Using environment camera");
+        }
+        
+        // IMPROVED SCANNER CONFIGURATION
+        const config = { 
+            fps: 15,  // Increased FPS
+            qrbox: { width: 280, height: 200 },  // Larger scan area
+            aspectRatio: 1.0,
+            rememberLastUsedCamera: true,
+            experimentalFeatures: {
+                useBarCodeDetectorIfSupported: true  // Use native API if available
+            },
+            formatsToSupport: [
+                Html5QrcodeSupportedFormats.EAN_13,
+                Html5QrcodeSupportedFormats.EAN_8,
+                Html5QrcodeSupportedFormats.ISBN,
+                Html5QrcodeSupportedFormats.CODE_128,
+                Html5QrcodeSupportedFormats.CODE_39,
+                Html5QrcodeSupportedFormats.UPC_A,
+                Html5QrcodeSupportedFormats.UPC_E
+            ]
+        };
+        
+        if (scanStatus) {
+            scanStatus.innerHTML = '<span class="text-blue-600">Starting scanner...</span>';
+        }
+        
+        // Start scanner
+        html5QrCode.start(
+            cameraId, 
+            config, 
+            onScanSuccess,
+            onScanProgress
+        )
+        .then(() => {
+            scanning = true;
+            debug("Scanner started successfully");
+            if (startButton) startButton.classList.add("hidden");
+            if (stopButton) stopButton.classList.remove("hidden");
+            if (scanStatus) {
+                scanStatus.innerHTML = '<span class="text-blue-600">Scanner active - ready to scan ISBN barcode</span>';
+            }
+        })
+        .catch(err => {
+            debug("Scanner start error: " + err.message, true);
+            if (scanStatus) {
+                scanStatus.innerHTML = `<span class="text-red-600">Camera error: ${err.message || err}. Please check your camera permissions.</span>`;
+            }
+        });
+    });
+    
+    // Stop scanning
+    stopButton?.addEventListener("click", function() {
+        if (scanning && html5QrCode) {
+            html5QrCode.stop()
+                .then(() => {
+                    scanning = false;
+                    debug("Scanner stopped");
+                    if (startButton) startButton.classList.remove("hidden");
+                    if (stopButton) stopButton.classList.add("hidden");
+                    if (scanStatus) scanStatus.innerHTML = '';
+                })
+                .catch(err => {
+                    debug("Scanner stop error: " + err.message, true);
+                    if (scanStatus) {
+                        scanStatus.innerHTML = `<span class="text-red-600">Error stopping scanner: ${err.message || err}</span>`;
+                    }
+                });
         }
     });
+    
+    // Prevent duplicate scans
+    function isDuplicateScan(result) {
+        const now = new Date().getTime();
+        if (lastResult === result && now - lastResultTime < 2000) {
+            return true;
+        }
+        lastResult = result;
+        lastResultTime = now;
+        return false;
+    }
+    
+    // IMPROVED BARCODE DETECTION LOGIC
+    function onScanSuccess(decodedText, decodedResult) {
+        debug("Scanned code: " + decodedText);
+        
+        // Prevent duplicate scans
+        if (isDuplicateScan(decodedText)) {
+            return;
+        }
+        
+        // Handle non-standard ISBN formats
+        // 1. Accept any numeric string with 10 or 13 digits
+        const isbnRegex = /^\d{10}$|^\d{13}$/;
+        
+        // 2. Accept common ISBN formats with hyphens
+        const isbnWithHyphenRegex = /^(?:\d{1,5}-){1,4}\d{1,7}$/;
+        
+        // 3. Accept ISBN with prefix text
+        const isbnWithPrefixRegex = /(?:ISBN(?:-1[03])?:?\s*)?(?=[-0-9 ]{17}|[-0-9X ]{13}|[0-9X]{10})(?:97[89][- ]?)?[0-9]{1,5}[- ]?[0-9]+[- ]?[0-9]+[- ]?[0-9X]$/i;
+        
+        // 4. Extract just the digits from any text
+        const extractDigitsRegex = /\d+/g;
+        
+        // Try direct matching first
+        if (isbnRegex.test(decodedText) || isbnWithHyphenRegex.test(decodedText) || isbnWithPrefixRegex.test(decodedText)) {
+            // Clean up the ISBN (remove hyphens and spaces)
+            const cleanIsbn = decodedText.replace(/[^0-9X]/g, '');
+            
+            debug("ISBN detected directly: " + cleanIsbn);
+            processIsbn(cleanIsbn);
+        } else {
+            // Try to extract digits that might be an ISBN
+            const allDigits = decodedText.match(extractDigitsRegex);
+            if (allDigits) {
+                const combinedDigits = allDigits.join('');
+                
+                // Check if we have a valid ISBN length 
+                if (combinedDigits.length === 10 || combinedDigits.length === 13) {
+                    debug("ISBN extracted from text: " + combinedDigits);
+                    processIsbn(combinedDigits);
+                } else if (combinedDigits.length > 13) {
+                    // Try to find a 13-digit or 10-digit sequence within the string
+                    // Check for 13 digits first
+                    const isbn13Match = combinedDigits.match(/\d{13}/);
+                    if (isbn13Match) {
+                        debug("ISBN-13 extracted from longer sequence: " + isbn13Match[0]);
+                        processIsbn(isbn13Match[0]);
+                    } else {
+                        // Then check for 10 digits
+                        const isbn10Match = combinedDigits.match(/\d{10}/);
+                        if (isbn10Match) {
+                            debug("ISBN-10 extracted from longer sequence: " + isbn10Match[0]);
+                            processIsbn(isbn10Match[0]);
+                        } else {
+                            if (scanStatus) {
+                                scanStatus.innerHTML = `<span class="text-orange-500">Not recognized as ISBN: ${decodedText}</span>`;
+                            }
+                        }
+                    }
+                } else {
+                    if (scanStatus) {
+                        scanStatus.innerHTML = `<span class="text-orange-500">Not recognized as ISBN: ${decodedText}</span>`;
+                    }
+                }
+            } else {
+                if (scanStatus) {
+                    scanStatus.innerHTML = `<span class="text-orange-500">Not recognized as ISBN: ${decodedText}</span>`;
+                }
+            }
+        }
+    }
+    
+    // Process the ISBN once we've extracted it
+    function processIsbn(isbn) {
+        if (scanStatus) {
+            scanStatus.innerHTML = `<span class="text-green-600">ISBN detected: ${isbn}</span>`;
+        }
+        
+        // Stop scanner and update UI
+        if (html5QrCode) {
+            html5QrCode.stop().then(() => {
+                scanning = false;
+                if (startButton) startButton.classList.remove("hidden");
+                if (stopButton) stopButton.classList.add("hidden");
+                
+                // Fill the ISBN field
+                const isbnField = document.getElementById("isbn");
+                if (isbnField) {
+                    isbnField.value = isbn;
+                }
+                
+                // Fetch book details from Google Books API
+                fetchBookDetails(isbn);
+            });
+        }
+    }
+    
+    // Handle scan progress (replaces onScanFailure)
+    function onScanProgress(errorMessage, error) {
+        // We don't need to do anything here for continuous scanning
+    }
+    
+    // Fetch book details from Google Books API
+    function fetchBookDetails(isbn) {
+        debug("Fetching book details for ISBN: " + isbn);
+        if (scanStatus) {
+            scanStatus.innerHTML = `<span class="text-blue-600">Looking up book information...</span>`;
+        }
+        
+        fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`API responded with status ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.items && data.items.length > 0) {
+                    const bookInfo = data.items[0].volumeInfo;
+                    debug("Book found: " + bookInfo.title);
+                    
+                    // Fill form fields
+                    const titleField = document.getElementById("titre");
+                    const authorField = document.getElementById("auteur");
+                    const descField = document.getElementById("description");
+                    
+                    if (titleField) titleField.value = bookInfo.title || '';
+                    if (authorField) authorField.value = bookInfo.authors ? bookInfo.authors.join(", ") : '';
+                    
+                    // Handle category
+                    const categorySelect = document.getElementById("categorie-select");
+                    if (categorySelect && bookInfo.categories && bookInfo.categories.length > 0) {
+                        // Check if the category exists in the dropdown
+                        const category = bookInfo.categories[0];
+                        let categoryFound = false;
+                        
+                        for (let i = 0; i < categorySelect.options.length; i++) {
+                            if (categorySelect.options[i].value.toLowerCase() === category.toLowerCase()) {
+                                categorySelect.value = categorySelect.options[i].value;
+                                categoryFound = true;
+                                break;
+                            }
+                        }
+                        
+                        // If not found, select "other" and fill in custom category
+                        if (!categoryFound && category) {
+                            categorySelect.value = 'other';
+                            // Trigger change event to show custom category field
+                            categorySelect.dispatchEvent(new Event('change'));
+                            const customCategoryField = document.getElementById("custom-category");
+                            if (customCategoryField) customCategoryField.value = category;
+                        }
+                    }
+                    
+                    // Fill description
+                    if (descField && bookInfo.description) {
+                        descField.value = bookInfo.description;
+                    }
+                    
+                                        // Try to load cover image if available
+                    if (bookInfo.imageLinks && bookInfo.imageLinks.thumbnail) {
+                        debug("Cover image found");
+                        
+                        // Get the image URL and ensure it's HTTPS
+                        const imageUrl = bookInfo.imageLinks.thumbnail.replace('http:', 'https:');
+                        
+                        // Set the hidden field value for server-side processing
+                        const coverImageUrlField = document.getElementById("cover-image-url");
+                        if (coverImageUrlField) {
+                            coverImageUrlField.value = imageUrl;
+                        }
+                        
+                        // Show the image preview
+                        const previewImage = document.getElementById("preview-image");
+                        const uploadPrompt = document.getElementById("upload-prompt");
+                        
+                        if (previewImage) {
+                            previewImage.src = imageUrl;
+                            previewImage.classList.remove('hidden');
+                            
+                            if (uploadPrompt) {
+                                uploadPrompt.classList.add('hidden');
+                            }
+                        }
+                        
+                        if (scanStatus) {
+                            scanStatus.innerHTML = `<span class="text-green-600">Book information loaded successfully! Cover image will be automatically downloaded when submitted.</span>`;
+                        }
+                    } else {
+                        if (scanStatus) {
+                            scanStatus.innerHTML = `<span class="text-green-600">Book information loaded successfully!</span>`;
+                        }
+                    }
+                } else {
+                    debug("No book details found for ISBN: " + isbn);
+                    if (scanStatus) {
+                        scanStatus.innerHTML = `<span class="text-yellow-600">No book details found for ISBN: ${isbn}</span>`;
+                    }
+                }
+            })
+            .catch(error => {
+                debug("API error: " + error.message, true);
+                if (scanStatus) {
+                    scanStatus.innerHTML = `<span class="text-red-600">Error fetching book details: ${error.message}</span>`;
+                }
+            });
+    }
+    
+    // If it's already scanning when the page loads (e.g., on page refresh), update the UI
+    if (scanning) {
+        if (startButton) startButton.classList.add("hidden");
+        if (stopButton) stopButton.classList.remove("hidden");
+    }
+});
 </script>
-{% endblock %}
+
 {% endblock %}

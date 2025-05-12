@@ -6,12 +6,12 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-# Install required packages, including pkg-config for mysqlclient detection
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libmariadb-dev \
     libmariadb-dev-compat \
     pkg-config \
+    ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
@@ -21,4 +21,4 @@ COPY . .
 RUN python manage.py collectstatic --noinput
 
 EXPOSE 8000
-CMD ["sh", "-c", "python manage.py migrate --noinput && uvicorn BiblioSmart.asgi:application --host 0.0.0.0 --port 8000"]
+CMD ["sh", "-c", "python manage.py migrate --noinput && uvicorn BiblioSmart.asgi:application --host 0.0.0.0"]
