@@ -253,7 +253,7 @@
                 const bookTitle = this.dataset.title;
                 
                 deleteBookTitle.textContent = bookTitle;
-                deleteForm.action = `/management/books/${bookId}/delete/`;
+                deleteForm.action = "{% url 'delete_book' 0 %}".replace('0', bookId);
                 deleteModal.classList.remove('hidden');
             });
         });

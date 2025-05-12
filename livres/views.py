@@ -9,6 +9,7 @@ from django.contrib import messages
 from django.utils import timezone
 from datetime import timedelta
 from django.utils.timezone import now
+import re
 from .decorators import custom_login_required
 
 def index(request):
@@ -38,6 +39,36 @@ def index(request):
 #     else:
 #         return render(request, 'book_form.html')
 
+# def add_book(request):
+#     if request.method == 'POST':
+#         titre = request.POST.get('titre')
+#         auteur = request.POST.get('auteur')
+#         ISBN = request.POST.get('ISBN')
+        
+#         categorie = request.POST.get('categorie')
+#         if categorie == 'other':
+#             categorie = request.POST.get('custom_categorie')
+
+#         image = request.FILES.get('image')
+#         description = request.POST.get('description') 
+
+#         new_book = Livre(
+#             titre=titre,
+#             auteur=auteur,
+#             ISBN=ISBN,
+#             categorie=categorie,
+#             disponibilite=True, 
+#             image=image,
+#             description=description
+#         )
+#         new_book.save()
+
+#         messages.success(request, f"Book '{new_book.titre}' added successfully.")
+#         return redirect('book_management')
+#     else:
+#         categories = Livre.objects.values_list('categorie', flat=True).distinct()
+#         return render(request, 'book_form.html', {'categories': categories})
+
 def add_book(request):
     if request.method == 'POST':
         titre = request.POST.get('titre')
@@ -48,20 +79,45 @@ def add_book(request):
         if categorie == 'other':
             categorie = request.POST.get('custom_categorie')
 
-        image = request.FILES.get('image')
+        disponibilite = request.POST.get('disponibilite', 'True') == 'True'
         description = request.POST.get('description') 
 
+        # Create book object first without saving to DB
         new_book = Livre(
             titre=titre,
             auteur=auteur,
             ISBN=ISBN,
             categorie=categorie,
-            disponibilite=True, 
-            image=image,
+            disponibilite=disponibilite,
             description=description
         )
-        new_book.save()
 
+        # Handle user-uploaded image
+        if 'image' in request.FILES:
+            new_book.image = request.FILES.get('image')
+        # If no direct upload but URL provided, download from URL
+        elif 'cover_image_url' in request.POST and request.POST.get('cover_image_url'):
+            cover_url = request.POST.get('cover_image_url')
+            try:
+                import requests
+                from django.core.files.base import ContentFile
+                from urllib.parse import urlparse
+                
+                response = requests.get(cover_url)
+                if response.status_code == 200:
+                    # Extract filename from URL or create one based on ISBN
+                    image_name = urlparse(cover_url).path.split('/')[-1]
+                    if not image_name or not image_name.lower().endswith(('.jpg', '.jpeg', '.png', '.gif')):
+                        image_name = f"cover_{ISBN}.jpg"
+                    
+                    # Save the image content to the model field
+                    new_book.image.save(image_name, ContentFile(response.content), save=False)
+                    messages.success(request, "Cover image was downloaded automatically.")
+            except Exception as e:
+                messages.warning(request, f"Could not download cover image: {str(e)}")
+        
+        # Save the book with the image attached
+        new_book.save()
         messages.success(request, f"Book '{new_book.titre}' added successfully.")
         return redirect('book_management')
     else:
@@ -323,7 +379,7 @@ def edit_book(request, book_id):
         if categorie == 'other':
             categorie = request.POST.get('custom_categorie')
 
-        new_disponibilite = request.POST.get('disponibilite') == 'on'
+        new_disponibilite = request.POST.get('disponibilite') == 'True'
 
         if not book.disponibilite and new_disponibilite:
             active_emprunts = Emprunt.objects.filter(livre=book, returned=False)

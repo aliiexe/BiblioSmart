@@ -30,8 +30,8 @@ ALLOWED_HOSTS = [
     "web-production-ba59d.up.railway.app",
     "0.0.0.0",      # for Uvicorn binding (not strictly needed in prod)
     "127.0.0.1",    # local tests
+    "localhost",    # Add this line
 ]
-
 
 
 # Application definition
@@ -170,10 +170,17 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+# Existing email settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'  # Replace with your email provider's SMTP server
+EMAIL_HOST = 'smtp.gmail.com'  
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'elmsalah1@gmail.com'  # Replace with your email address
-EMAIL_HOST_PASSWORD = 'frsd bnlz jxih kbhj'  # Replace with your email password
+EMAIL_HOST_USER = 'alibusinessbourak@gmail.com'
+EMAIL_HOST_PASSWORD = 'olcjasnxdfqttmel'
+
+# Add these new settings
+EMAIL_USE_SSL = False  # Don't use both TLS and SSL
+EMAIL_SSL_CERTFILE = None  # Let Python find the cert file
+EMAIL_SSL_KEYFILE = None
+# This setting is the key to fixing the issue in many environments
+EMAIL_TIMEOUT = 30  # Increase timeout

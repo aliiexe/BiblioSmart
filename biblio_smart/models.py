@@ -143,7 +143,7 @@ class Notification(models.Model):
         ('overdue', 'Overdue Book'),
         ('system', 'System Notification'),
         ('book_borrowed', 'Book Borrowed'),
-        ('book_returned', 'Book Returned'),  # New type for book returned
+        ('book_returned', 'Book Returned'),
         ('loan_paid', 'Loan Paid'),
     )
     
@@ -156,27 +156,38 @@ class Notification(models.Model):
     
     class Meta:
         ordering = ['-created_at']
+        
     def save(self, *args, **kwargs):
         # Call the original save method
         super().save(*args, **kwargs)
 
-        # Send email notification for 'book_borrowed' type
+        # Send email notification for specific notification types
         if self.type in ['book_borrowed', 'book_returned', 'loan_paid']:
-            email_subject = ''
-            if self.type == 'book_borrowed':
-                email_subject = 'Book Borrowed Notification'
-            elif self.type == 'book_returned':
-                email_subject = 'Book Returned Notification'
-            elif self.type == 'loan_paid':
-                email_subject = 'Loan Payment Confirmation'
+            try:
+                # Verify user has an email
+                if not self.user.email:
+                    print(f"No email found for user {self.user.id}")
+                    return
+                    
+                email_subject = ''
+                if self.type == 'book_borrowed':
+                    email_subject = 'Book Borrowed Notification'
+                elif self.type == 'book_returned':
+                    email_subject = 'Book Returned Notification'
+                elif self.type == 'loan_paid':
+                    email_subject = 'Loan Payment Confirmation'
 
-            send_mail(
-                subject=email_subject,
-                message=self.message,
-                from_email='elmsalah1@gmail.com',
-                recipient_list=[self.user.email],
-                fail_silently=False,
-            ) 
+                send_mail(
+                    subject=email_subject,
+                    message=self.message,
+                    from_email='alibusinessbourak@gmail.com',
+                    recipient_list=[self.user.email],
+                    fail_silently=False,
+                )
+                print(f"Email sent successfully to {self.user.email}")
+            except Exception as e:
+                print(f"Failed to send email: {str(e)}")
+                # Don't re-raise the exception so notification saves even if email fails
 
 class BookComment(models.Model):
     livre = models.ForeignKey(Livre, on_delete=models.CASCADE, related_name='comments')
