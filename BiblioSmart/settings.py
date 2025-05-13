@@ -24,10 +24,21 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-$$clu$0(v#u!hj8o83n6sjab&v#80n5c+_vnciypj1pu&$$w!d'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
+# Add this to your settings.py
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.up.railway.app',
+    'https://*.railway.app',
+    '*'
+]
+
+# Add these to your settings.py
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Application definition
 
@@ -101,31 +112,18 @@ WSGI_APPLICATION = 'BiblioSmart.wsgi.application'
 #     }
 # }
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'biblio_smart_db',
-#         'USER': '2hadRfj9ujbyhJw.root',
-#         'PASSWORD': 'sGryvKTjGw8EHkvr',
-#         'HOST': 'gateway01.eu-central-1.prod.aws.tidbcloud.com',
-#         'PORT': '4000',
-#         'OPTIONS': {
-#             'ssl_mode': 'REQUIRED',
-#             'charset': 'utf8mb4',
-#         }
-#     }
-# }
-
-# settings.py
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.environ.get('MYSQLDATABASE', 'railway'),
-        'USER': os.environ.get('MYSQLUSER', 'root'),
-        'PASSWORD': os.environ.get('MYSQLPASSWORD', ''),
-        'HOST': os.environ.get('MYSQLHOST', 'localhost'),
-        'PORT': os.environ.get('MYSQLPORT', '3306'),
+        'NAME': 'biblio_smart_db',
+        'USER': '2hadRfj9ujbyhJw.root',
+        'PASSWORD': 'sGryvKTjGw8EHkvr',
+        'HOST': 'gateway01.eu-central-1.prod.aws.tidbcloud.com',
+        'PORT': '4000',
+        'OPTIONS': {
+            'ssl_mode': 'REQUIRED',
+            'charset': 'utf8mb4',
+        }
     }
 }
 

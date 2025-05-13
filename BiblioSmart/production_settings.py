@@ -101,18 +101,31 @@ WSGI_APPLICATION = 'BiblioSmart.wsgi.application'
 #     }
 # }
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'biblio_smart_db',
+#         'USER': '2hadRfj9ujbyhJw.root',
+#         'PASSWORD': 'sGryvKTjGw8EHkvr',
+#         'HOST': 'gateway01.eu-central-1.prod.aws.tidbcloud.com',
+#         'PORT': '4000',
+#         'OPTIONS': {
+#             'ssl_mode': 'REQUIRED',
+#             'charset': 'utf8mb4',
+#         }
+#     }
+# }
+
+# settings.py
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'biblio_smart_db',
-        'USER': '2hadRfj9ujbyhJw.root',
-        'PASSWORD': 'sGryvKTjGw8EHkvr',
-        'HOST': 'gateway01.eu-central-1.prod.aws.tidbcloud.com',
-        'PORT': '4000',
-        'OPTIONS': {
-            'ssl_mode': 'REQUIRED',
-            'charset': 'utf8mb4',
-        }
+        'NAME': os.environ.get('MYSQLDATABASE', 'railway'),
+        'USER': os.environ.get('MYSQLUSER', 'root'),
+        'PASSWORD': os.environ.get('MYSQLPASSWORD', ''),
+        'HOST': os.environ.get('MYSQLHOST', 'localhost'),
+        'PORT': os.environ.get('MYSQLPORT', '3306'),
     }
 }
 
