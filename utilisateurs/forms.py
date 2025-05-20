@@ -61,10 +61,10 @@ class UtilisateurForm(forms.ModelForm):
 
 class LecteurForm(forms.ModelForm):
     confirm_password = forms.CharField(widget=forms.PasswordInput(), required=False)
-    
+
     class Meta:
         model = Lecteur
-        fields = ['nom', 'email', 'mot_de_passe']
+        fields = ['nom', 'email', 'mot_de_passe', 'role']  # Ajoutez 'role' ici
         widgets = {
             'mot_de_passe': forms.PasswordInput(),
         }
@@ -101,24 +101,23 @@ class LecteurForm(forms.ModelForm):
     
     def save(self, commit=True):
         user = super().save(commit=False)
-        user.role = 'lecteur'
-        
-        # Hash password if provided
+        # Prendre le rôle du formulaire si présent, sinon garder 'lecteur'
+        user.role = self.cleaned_data.get('role', user.role if self.instance.pk else 'lecteur')
         password = self.cleaned_data.get('mot_de_passe')
         if password:
             user.mot_de_passe = make_password(password)
-            
         if commit:
             user.save()
-            
         return user
+    
+
 
 class BibliothecaireForm(forms.ModelForm):
     confirm_password = forms.CharField(widget=forms.PasswordInput(), required=False)
-    
+
     class Meta:
         model = Bibliothecaire
-        fields = ['nom', 'email', 'mot_de_passe']
+        fields = ['nom', 'email', 'mot_de_passe', 'role']  # Ajoutez 'role' ici
         widgets = {
             'mot_de_passe': forms.PasswordInput(),
         }
@@ -155,17 +154,15 @@ class BibliothecaireForm(forms.ModelForm):
     
     def save(self, commit=True):
         user = super().save(commit=False)
-        user.role = 'bibliothecaire'
-        
-        # Hash password if provided
+        # Prendre le rôle du formulaire si présent, sinon garder 'bibliothecaire'
+        user.role = self.cleaned_data.get('role', user.role if self.instance.pk else 'bibliothecaire')
         password = self.cleaned_data.get('mot_de_passe')
         if password:
             user.mot_de_passe = make_password(password)
-            
         if commit:
             user.save()
-            
         return user
+    
 
 class LoginForm(forms.Form):
     email = forms.EmailField()

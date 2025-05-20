@@ -77,35 +77,66 @@ def add_user(request):
     
     return render(request, 'user_form.html', {'form': form, 'is_edit': False})
 
+# def edit_lecteur(request, user_id):
+#     lecteur = get_object_or_404(Lecteur, id=user_id)
+#     original_password = lecteur.mot_de_passe  # Store the original password
+    
+#     if request.method == 'POST':
+#         # Handle empty password fields specially
+#         post_data = request.POST.copy()  # Make a mutable copy
+        
+#         # If password field is empty, remove it from the POST data
+#         # so the form doesn't process it at all
+#         if post_data.get('mot_de_passe') == '':
+#             post_data.pop('mot_de_passe')
+        
+#         form = LecteurForm(post_data, instance=lecteur)
+        
+#         if form.is_valid():
+#             user = form.save(commit=False)
+            
+#             # If password wasn't in the POST data, restore the original
+#             if 'mot_de_passe' not in post_data:
+#                 user.mot_de_passe = original_password
+            
+#             user.save()
+#             messages.success(request, f'Reader "{user.nom}" has been updated successfully.')
+#             return redirect('user_detail', user_id=user.id)
+#     else:
+#         form = LecteurForm(instance=lecteur)
+#         form.fields['mot_de_passe'].required = False  # Make password optional on edit
+    
+#     return render(request, 'user_form.html', {'form': form, 'user': lecteur, 'is_edit': True})
+
+
+
+
 def edit_lecteur(request, user_id):
     lecteur = get_object_or_404(Lecteur, id=user_id)
-    original_password = lecteur.mot_de_passe  # Store the original password
-    
+    original_password = lecteur.mot_de_passe
+
     if request.method == 'POST':
-        # Handle empty password fields specially
-        post_data = request.POST.copy()  # Make a mutable copy
-        
-        # If password field is empty, remove it from the POST data
-        # so the form doesn't process it at all
+        post_data = request.POST.copy()
         if post_data.get('mot_de_passe') == '':
             post_data.pop('mot_de_passe')
-        
+
         form = LecteurForm(post_data, instance=lecteur)
-        
+
         if form.is_valid():
             user = form.save(commit=False)
-            
-            # If password wasn't in the POST data, restore the original
+            # Si le champ mot_de_passe n'est pas dans le POST, on garde l'ancien
             if 'mot_de_passe' not in post_data:
                 user.mot_de_passe = original_password
-            
+            # Mettre à jour le rôle si présent dans le formulaire
+            if 'role' in form.cleaned_data:
+                user.role = form.cleaned_data['role']
             user.save()
             messages.success(request, f'Reader "{user.nom}" has been updated successfully.')
             return redirect('user_detail', user_id=user.id)
     else:
         form = LecteurForm(instance=lecteur)
-        form.fields['mot_de_passe'].required = False  # Make password optional on edit
-    
+        form.fields['mot_de_passe'].required = False
+
     return render(request, 'user_form.html', {'form': form, 'user': lecteur, 'is_edit': True})
 
 def edit_bibliothecaire(request, user_id):

@@ -11,9 +11,15 @@ from datetime import timedelta
 from django.utils.timezone import now
 import re
 from .decorators import custom_login_required
+from django.core.paginator import Paginator
+from django.views.decorators.http import require_POST
+from django.http import JsonResponse
 
 def index(request):
-    books = Livre.objects.all()
+    books_list = Livre.objects.all().order_by('-id')
+    paginator = Paginator(books_list, 8)  # 8 livres par page
+    page_number = request.GET.get('page')
+    books = paginator.get_page(page_number)
     return render(request, 'index.html', {'books': books})
 
 # def add_book(request):
@@ -134,23 +140,24 @@ def home(request):
         'categories': categories,
     })
 
+
 def books(request):
-    books = Livre.objects.all()
+    books_qs = Livre.objects.all()
     categories = Livre.objects.values_list('categorie', flat=True).distinct()
 
     category = request.GET.get('category')
     if category:
-        books = books.filter(categorie=category)
+        books_qs = books_qs.filter(categorie=category)
 
     availability = request.GET.get('availability')
     if availability == 'available':
-        books = books.filter(disponibilite=True)
+        books_qs = books_qs.filter(disponibilite=True)
     elif availability == 'borrowed':
-        books = books.filter(disponibilite=False)
+        books_qs = books_qs.filter(disponibilite=False)
 
     search_query = request.GET.get('search')
     if search_query:
-        books = books.filter(
+        books_qs = books_qs.filter(
             models.Q(titre__icontains=search_query) |
             models.Q(auteur__icontains=search_query) |
             models.Q(ISBN__icontains=search_query)
@@ -158,13 +165,17 @@ def books(request):
 
     sort = request.GET.get('sort')
     if sort == 'title_asc':
-        books = books.order_by('titre')
+        books_qs = books_qs.order_by('titre')
     elif sort == 'title_desc':
-        books = books.order_by('-titre')
+        books_qs = books_qs.order_by('-titre')
     elif sort == 'author_asc':
-        books = books.order_by('auteur')
+        books_qs = books_qs.order_by('auteur')
     elif sort == 'recent':
-        books = books.order_by('-date_ajout')
+        books_qs = books_qs.order_by('-date_ajout')
+
+    paginator = Paginator(books_qs, 10) 
+    page_number = request.GET.get('page')
+    books = paginator.get_page(page_number)
 
     return render(request, 'books.html', {'books': books, 'categories': categories})
 
@@ -349,12 +360,35 @@ def join_waitlist(request, book_id):
     
     return redirect('book_detail', book_id=book_id)
 
-def book_management(request):
-    books = Livre.objects.all().order_by('-id')
-    for book in books:
-        print(f"Book ID: {book.id}, Title: {book.titre}")
-    return render(request, 'book_management.html', {'books': books})
 
+
+def book_management(request):
+    books_list = Livre.objects.all().order_by('-id')
+    search_query = request.GET.get('search')
+    category = request.GET.get('category')
+    availability = request.GET.get('availability')
+
+    if search_query:
+        books_list = books_list.filter(
+            models.Q(titre__icontains=search_query) |
+            models.Q(auteur__icontains=search_query) |
+            models.Q(ISBN__icontains=search_query)
+        )
+    if category:
+        books_list = books_list.filter(categorie=category)
+    if availability == 'available':
+        books_list = books_list.filter(disponibilite=True)
+    elif availability == 'borrowed':
+        books_list = books_list.filter(disponibilite=False)
+
+    paginator = Paginator(books_list, 8)
+    page_number = request.GET.get('page')
+    books = paginator.get_page(page_number)
+    categories = Livre.objects.values_list('categorie', flat=True).distinct()
+    return render(request, 'book_management.html', {
+        'books': books,
+        'categories': categories,
+    })
 # def add_book(request):
 #     if request.method == 'POST':
 #         form = BookForm(request.POST, request.FILES)
@@ -652,3 +686,9 @@ def submit_review(request, book_id):
     
     messages.success(request, "Thank you for your review!")
     return redirect('book_detail', book_id=book_id)
+
+
+# Bulk Actions
+
+
+
