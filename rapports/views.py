@@ -513,6 +513,22 @@ def generate_activity_excel(emprunts, periode):
     return response
 
 # ================================================
+# def rapport_financier(request):
+#     if request.method == 'POST':
+#         format_rapport = request.POST.get('format')
+
+#         # Récupérer les données des amendes impayées
+#         amendes = Amende.objects.filter(statut=False)
+#         print(f"Nombre d'amendes récupérées : {amendes.count()}")
+#         for amende in amendes:
+#             print(f"Lecteur : {amende.emprunt.lecteur.nom}, Livre : {amende.emprunt.livre.titre}, Montant : {amende.montant}")
+
+#         if format_rapport == 'pdf':
+#             return generate_pdf(amendes)
+
+#     return render(request, 'rapports/financier.html')
+
+
 def rapport_financier(request):
     if request.method == 'POST':
         format_rapport = request.POST.get('format')
@@ -520,13 +536,15 @@ def rapport_financier(request):
         # Récupérer les données des amendes impayées
         amendes = Amende.objects.filter(statut=False)
         print(f"Nombre d'amendes récupérées : {amendes.count()}")
-        for amende in amendes:
-            print(f"Lecteur : {amende.emprunt.lecteur.nom}, Livre : {amende.emprunt.livre.titre}, Montant : {amende.montant}")
-
+        
         if format_rapport == 'pdf':
             return generate_pdf(amendes)
+        elif format_rapport == 'excel':
+            return generate_excel(amendes)
 
     return render(request, 'rapports/financier.html')
+
+
 def generate_pdf(amendes):
     # Création du buffer et du PDF
     buffer = io.BytesIO()
@@ -591,4 +609,83 @@ def generate_pdf(amendes):
     # Retour de la réponse
     response = HttpResponse(buffer, content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="rapport_financier.pdf"'
+    return response
+
+
+def generate_excel(amendes):
+    # Création du buffer et du workbook Excel
+    output = io.BytesIO()
+    workbook = xlsxwriter.Workbook(output, {'in_memory': True})
+    worksheet = workbook.add_worksheet("Rapport Financier")
+
+    # Formats pour le style
+    title_format = workbook.add_format({
+        'bold': True,
+        'font_size': 16,
+        'align': 'center',
+        'valign': 'vcenter'
+    })
+    header_format = workbook.add_format({
+        'bold': True,
+        'font_size': 12,
+        'align': 'left',
+        'border': 1
+    })
+    cell_format = workbook.add_format({
+        'align': 'left',
+        'border': 1
+    })
+    money_format = workbook.add_format({
+        'align': 'right',
+        'border': 1,
+        'num_format': '0.00 €'
+    })
+    total_format = workbook.add_format({
+        'bold': True,
+        'font_size': 12,
+        'align': 'right',
+        'num_format': '0.00 €'
+    })
+
+    # Ajuster la largeur des colonnes
+    worksheet.set_column('A:A', 30)  # Nom Lecteur
+    worksheet.set_column('B:B', 40)  # Livre
+    worksheet.set_column('C:C', 15)  # Montant
+
+    # Titre du rapport
+    worksheet.merge_range('A1:C1', 'Rapport Financier - Amendes Impayées', title_format)
+    
+    # En-têtes des colonnes
+    worksheet.write('A3', 'Nom Lecteur', header_format)
+    worksheet.write('B3', 'Livre', header_format)
+    worksheet.write('C3', 'Montant', header_format)
+
+    # Données
+    row = 3
+    total_amendes = 0
+
+    for amende in amendes:
+        try:
+            worksheet.write(row, 0, str(amende.emprunt.lecteur.nom), cell_format)
+            worksheet.write(row, 1, str(amende.emprunt.livre.titre), cell_format)
+            worksheet.write(row, 2, amende.montant, money_format)
+            total_amendes += amende.montant
+            row += 1
+        except Exception as e:
+            print(f"Erreur avec l'amende {amende.id}: {str(e)}")
+
+    # Total
+    row += 1
+    worksheet.write(row, 1, 'Total des amendes impayées:', header_format)
+    worksheet.write(row, 2, total_amendes, total_format)
+
+    # Finalisation et retour
+    workbook.close()
+    output.seek(0)
+    
+    response = HttpResponse(
+        output,
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename="rapport_financier.xlsx"'
     return response
