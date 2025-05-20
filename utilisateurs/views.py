@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.db.models import Q
 from django.contrib.auth.hashers import check_password
 from django.utils import timezone
-from biblio_smart.models import Utilisateur, Lecteur, Bibliothecaire
+from biblio_smart.models import Utilisateur, Lecteur, Bibliothecaire, Livre, Emprunt
 from .forms import UtilisateurForm, LecteurForm, BibliothecaireForm, LoginForm
 
 # User Management views
