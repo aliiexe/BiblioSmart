@@ -34,7 +34,8 @@ urlpatterns = [
 
     path('book/<int:book_id>/review/', views.review_book, name='review_book'),
     path('book/<int:book_id>/submit-review/', views.submit_review, name='submit_review'),
-
+    path('books/bulk-delete/', views.bulk_delete_books, name='bulk_delete_books'),
+    path('books/bulk-update-availability/', views.bulk_update_availability, name='bulk_update_availability'),
 
         
         # path('books/bulk-delete/', views.bulk_delete_books, name='bulk_delete_books'),

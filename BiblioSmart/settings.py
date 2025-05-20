@@ -29,11 +29,12 @@ DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 # Add this to your settings.py
-CSRF_TRUSTED_ORIGINS = [
-    'https://*.up.railway.app',
-    'https://*.railway.app',
-    '*'
-]
+# CSRF_TRUSTED_ORIGINS = [
+#     'https://*.up.railway.app',
+#     'https://*.railway.app',
+#     '*',
+#     'http://localhost:8000',
+# ]
 
 # Add these to your settings.py
 CSRF_COOKIE_SECURE = True

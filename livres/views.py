@@ -688,7 +688,43 @@ def submit_review(request, book_id):
     return redirect('book_detail', book_id=book_id)
 
 
+from django.http import JsonResponse
+import json
+
 # Bulk Actions
+def bulk_delete_books(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            book_ids = data.get('book_ids', [])
+            
+            # Delete the selected books
+            deleted_count = Livre.objects.filter(id__in=book_ids).delete()[0]
+            
+            messages.success(request, f"{deleted_count} books were successfully deleted.")
+            return JsonResponse({'status': 'success', 'deleted_count': deleted_count})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+    
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
+
+def bulk_update_availability(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            book_ids = data.get('book_ids', [])
+            availability = data.get('availability', True)  # Default to available
+            
+            # Update the availability of selected books
+            updated_count = Livre.objects.filter(id__in=book_ids).update(disponibilite=availability)
+            
+            status = "available" if availability else "borrowed"
+            messages.success(request, f"{updated_count} books were marked as {status}.")
+            return JsonResponse({'status': 'success', 'updated_count': updated_count})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+    
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
 
 
 
